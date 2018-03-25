@@ -41,6 +41,15 @@ class Bibcite_SC_Public {
 	private $version;
 
 	/**
+	 * A post ID -> [bibcite entries] array.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      string    $version    The current version of this plugin.
+	 */
+	private $post_id_to_bibcite_keys_array;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -51,6 +60,7 @@ class Bibcite_SC_Public {
 
 		$this->bibcite_sc = $bibcite_sc;
 		$this->version = $version;
+		$this->post_id_to_bibcite_keys_array = array();
 
 	}
 
@@ -100,4 +110,68 @@ class Bibcite_SC_Public {
 
 	}
 
+	/**
+	 * Handle a [bibcite] shortcode.
+	 *
+	 * @since    1.0.0
+	 */
+	public function do_bibcite_shortcode( $atts, $content = null ) {
+
+		// Work out what post we're in.
+		global $post;
+		$post_id = $post->ID;
+		
+		// Do we already have an array of [bibcite] entries for this post? If not, create one.
+		$bibcite_indices_to_keys;
+		if ( array_key_exists ( $post_id, $this->post_id_to_bibcite_keys_array ) )
+			$bibcite_indices_to_keys = $this->post_id_to_bibcite_keys_array[$post_id];
+		else
+		{
+			$bibcite_indices_to_keys = array();
+			$this->post_id_to_bibcite_keys_array[$post_id] = $bibcite_indices_to_keys;
+		}
+
+		// Extract the key or keys in this [bibcite key=...] shortcode, add it to the array, and
+		// get the resultant index.
+		$bibcite_key = $atts["key"];
+		array_push ( $bibcite_indices_to_keys, $bibcite_key );
+		end($array);
+		$bibcite_index = key($array);
+
+		// Increment the reference index and emit the link.
+		return "[Key: " . $bibcite_key . "; index: " . $bibcite_index . "]";
+	}
+
+	/**
+	 * Handle a [bibshow] ...[/bibshow] shortcode.
+	 *
+	 * @since    1.0.0
+	 */
+	public function do_bibshow_shortcode( $atts, $content = null ) {
+
+		// Compile a list of all [bibcite] entries for this post
+
+		// If the Bibtex file hasn't been downloaded or parsed, do it now.
+
+		// Find the Bibtex entries for each [bibcite] entry in the post.
+		///////////////////////////////////////////////////////////////
+
+		// Work out what post we're in.
+		global $post;
+		$post_id = $post->ID;
+		
+		// Do we have an array of [bibcite] entries for this post? If not, nothing to do.
+		$bibcite_indices_to_keys;
+		if ( !array_key_exists ( $post_id, $this->post_id_to_bibcite_keys_array ) )
+			return $content;
+		else
+			$bibcite_indices_to_keys = $this->post_id_to_bibcite_keys_array[$post_id];
+
+		// Run through the template engine to produce the bibliography and append to the content.
+		$bibliography = "";
+		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key)
+			$bibliography .= "[Key: " . $bibcite_key . "; index: " . $bibcite_index . "]";
+
+		return $content . "<p>" . $bibliography . "</p>";
+	}
 }

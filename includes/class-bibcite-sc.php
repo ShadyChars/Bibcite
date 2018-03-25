@@ -176,6 +176,21 @@ class Bibcite_SC {
 	}
 
 	/**
+	 * Register all of the shortcodes supported by the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private function define_shortcodes() {
+
+		$plugin_public = new Bibcite_SC_Public( $this->get_bibcite_sc(), $this->get_version() );
+
+		$this->loader->add_shortcode( 'bibcite', $plugin_public, 'do_bibcite_shortcode' );
+		$this->loader->add_shortcode( 'bibshow', $plugin_public, 'do_bibshow_shortcode' );
+
+	}
+
+	/**
 	 * Run the loader to execute all of the hooks with WordPress.
 	 *
 	 * @since    1.0.0
