@@ -61,7 +61,6 @@ class Bibcite_SC_Public {
 		$this->bibcite_sc = $bibcite_sc;
 		$this->version = $version;
 		$this->post_id_to_bibcite_keys_array = array();
-
 	}
 
 	/**

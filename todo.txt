@@ -1,0 +1,13 @@
+Setup:
+
+* DB is "wordpress-bibcite-sc" on localhost
+* phpMyAdmin is "root" / no password
+* Upgraded Wamp64 to PHP 7
+* WP install is D:/wamp64/www/wordpress-bibcite-sc
+* Wordpress is "admin" / "password"
+
+To do:
+
+* Move logging into dedicated Bibcite_Logger class
+* Add logging to existing methods to track lifecycle
+* Work out how to download, load, parse and cache a Bibtex file

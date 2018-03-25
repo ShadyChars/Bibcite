@@ -1,5 +1,7 @@
 <?php
 
+include('class-bibcite-logger.php');
+
 /**
  * The file that defines the core plugin class
  *
@@ -67,6 +69,9 @@ class Bibcite_SC {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
+
+		Bibcite_Logger::instance()->debug("Loading bibcite-sc plugin...");
+
 		if ( defined( 'BIBCITE_SC_VERSION' ) ) {
 			$this->version = BIBCITE_SC_VERSION;
 		} else {
@@ -78,6 +83,7 @@ class Bibcite_SC {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		$this->define_shortcodes();
 
 	}
 
@@ -229,5 +235,4 @@ class Bibcite_SC {
 	public function get_version() {
 		return $this->version;
 	}
-
 }
