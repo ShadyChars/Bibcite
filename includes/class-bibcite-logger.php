@@ -1,6 +1,6 @@
 <?php
 
-include('log4php/Logger.php');
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\log4php\Logger.php';
 
 class Bibcite_Logger
 {

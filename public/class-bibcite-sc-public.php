@@ -1,5 +1,7 @@
 <?php
 
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
+
 /**
  * The public-facing functionality of the plugin.
  *
@@ -116,6 +118,10 @@ class Bibcite_SC_Public {
 	 */
 	public function do_bibcite_shortcode( $atts, $content = null ) {
 
+		Bibcite_Logger::instance()->debug(
+			"Encountered bibcite shortcode with attributes: " . implode(", ", $atts)
+		);
+
 		// Work out what post we're in.
 		global $post;
 		$post_id = $post->ID;
@@ -134,8 +140,8 @@ class Bibcite_SC_Public {
 		// get the resultant index.
 		$bibcite_key = $atts["key"];
 		array_push ( $bibcite_indices_to_keys, $bibcite_key );
-		end($array);
-		$bibcite_index = key($array);
+		end ( $bibcite_indices_to_keys );
+		$bibcite_index = key ( $bibcite_indices_to_keys );
 
 		// Increment the reference index and emit the link.
 		return "[Key: " . $bibcite_key . "; index: " . $bibcite_index . "]";
@@ -147,6 +153,11 @@ class Bibcite_SC_Public {
 	 * @since    1.0.0
 	 */
 	public function do_bibshow_shortcode( $atts, $content = null ) {
+
+		Bibcite_Logger::instance()->debug("Encountered bibshow shortcode");
+
+		// Process the content of this shortcode, in case we encounter any other shortcodes
+		$processed_content = do_shortcode($content);
 
 		// Compile a list of all [bibcite] entries for this post
 
@@ -171,6 +182,6 @@ class Bibcite_SC_Public {
 		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key)
 			$bibliography .= "[Key: " . $bibcite_key . "; index: " . $bibcite_index . "]";
 
-		return $content . "<p>" . $bibliography . "</p>";
+		return $processed_content . "<p>" . $bibliography . "</p>";
 	}
 }

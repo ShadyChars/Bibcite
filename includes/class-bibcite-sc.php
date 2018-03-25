@@ -1,6 +1,6 @@
 <?php
 
-include('class-bibcite-logger.php');
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
 
 /**
  * The file that defines the core plugin class
