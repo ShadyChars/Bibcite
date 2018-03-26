@@ -128,23 +128,30 @@ class Bibcite_SC_Public {
 		
 		// Do we already have an array of [bibcite] entries for this post? If not, create one.
 		$bibcite_indices_to_keys;
-		if ( array_key_exists ( $post_id, $this->post_id_to_bibcite_keys_array ) )
-			$bibcite_indices_to_keys = $this->post_id_to_bibcite_keys_array[$post_id];
-		else
-		{
+		if ( !array_key_exists ( $post_id, $this->post_id_to_bibcite_keys_array ) ) {
 			$bibcite_indices_to_keys = array();
-			$this->post_id_to_bibcite_keys_array[$post_id] = $bibcite_indices_to_keys;
+			Bibcite_Logger::instance()->debug(
+				"Creating new array of bibcite keys for post ${post_id}"
+			);
 		}
 
-		// Extract the key or keys in this [bibcite key=...] shortcode, add it to the array, and
-		// get the resultant index.
-		$bibcite_key = $atts["key"];
-		array_push ( $bibcite_indices_to_keys, $bibcite_key );
-		end ( $bibcite_indices_to_keys );
-		$bibcite_index = key ( $bibcite_indices_to_keys );
+		$bibcite_indices_to_keys = &$this->post_id_to_bibcite_keys_array[$post_id];
 
-		// Increment the reference index and emit the link.
-		return "[Key: " . $bibcite_key . "; index: " . $bibcite_index . "]";
+		// Extract the key or keys in this [bibcite key=...] shortcode.?
+		$bibcite_key = $atts["key"];
+		if (...) {
+			
+			// If this is a valid reference, record it and emit the link.
+			$bibcite_indices_to_keys[] = $bibcite_key;
+			$bibcite_index = count ( $bibcite_indices_to_keys ) - 1;
+
+			// Increment the reference index and emit the link.
+			return "[Key: ${bibcite_key}; index: ${bibcite_index}]";
+
+		} else {
+			// If this is not a valid reference, record it as an error.
+			return "";
+		}
 	}
 
 	/**
@@ -180,8 +187,8 @@ class Bibcite_SC_Public {
 		// Run through the template engine to produce the bibliography and append to the content.
 		$bibliography = "";
 		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key)
-			$bibliography .= "[Key: " . $bibcite_key . "; index: " . $bibcite_index . "]";
+			$bibliography .= "[Key: ${bibcite_key}; index: ${bibcite_index}]";
 
-		return $processed_content . "<p>" . $bibliography . "</p>";
+		return $processed_content . "<p>${bibliography}</p>";
 	}
 }

@@ -2,12 +2,19 @@ Setup:
 
 * DB is "wordpress-bibcite-sc" on localhost
 * phpMyAdmin is "root" / no password
-* Upgraded Wamp64 to PHP 7
+* Switched Wamp64 to PHP 7 (requirement for anonymous classes)
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
 To do:
 
-* Move logging into dedicated Bibcite_Logger class
+* Move logging into dedicated Bibcite_Logger class - DONE
 * Add logging to existing methods to track lifecycle
 * Work out how to download, load, parse and cache a Bibtex file
+* Define download / file / caching behaviour
+
+Add admin settings:
+
+* URL(s) of bibliographies
+* Log level
+* Show log
