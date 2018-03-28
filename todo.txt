@@ -9,12 +9,15 @@ Setup:
 To do:
 
 * Move logging into dedicated Bibcite_Logger class - DONE
-* Add logging to existing methods to track lifecycle
-* Work out how to download, load, parse and cache a Bibtex file
-* Define download / file / caching behaviour
+* Add logging to existing methods to track lifecycle - DONE
+* Work out how to download, load, parse and cache a Bibtex file - IN PROGRESS
+* Define download / file / caching behaviour - IN PROGRESS
+	* Need to work out how to use local files, if available.
 
 Add admin settings:
 
 * URL(s) of bibliographies
+	* Add the ability to upload files directly? Store in a separate dir and check dates/times periodically? Can probably use the same logic as for a remote file. Might be worth having multiple Bibcite_Library instances w/ backed either by a URL or file, and with derived/specialised download/check cache date mechanisms.
+* Local cache time
 * Log level
 * Show log

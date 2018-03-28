@@ -1,6 +1,7 @@
 <?php
 
 include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-library.php';
 
 /**
  * The public-facing functionality of the plugin.
@@ -127,9 +128,8 @@ class Bibcite_SC_Public {
 		$post_id = $post->ID;
 		
 		// Do we already have an array of [bibcite] entries for this post? If not, create one.
-		$bibcite_indices_to_keys;
 		if ( !array_key_exists ( $post_id, $this->post_id_to_bibcite_keys_array ) ) {
-			$bibcite_indices_to_keys = array();
+			$this->post_id_to_bibcite_keys_array[$post_id] = array();
 			Bibcite_Logger::instance()->debug(
 				"Creating new array of bibcite keys for post ${post_id}"
 			);
@@ -137,21 +137,20 @@ class Bibcite_SC_Public {
 
 		$bibcite_indices_to_keys = &$this->post_id_to_bibcite_keys_array[$post_id];
 
-		// Extract the key or keys in this [bibcite key=...] shortcode.?
+		// Extract the key or keys in this [bibcite key=...] shortcode. If we've already seen this 
+		// entry, reuse it.		
 		$bibcite_key = $atts["key"];
-		if (...) {
-			
-			// If this is a valid reference, record it and emit the link.
+		if ( array_key_exists( $bibcite_key, $bibcite_indices_to_keys ) ) {
 			$bibcite_indices_to_keys[] = $bibcite_key;
-			$bibcite_index = count ( $bibcite_indices_to_keys ) - 1;
-
-			// Increment the reference index and emit the link.
-			return "[Key: ${bibcite_key}; index: ${bibcite_index}]";
-
-		} else {
-			// If this is not a valid reference, record it as an error.
-			return "";
+			return "[Existing key: ${bibcite_key}]";
 		}
+
+		// If not, add a new entry to the list.
+		$bibcite_indices_to_keys[] = $bibcite_key;
+		$bibcite_index = count ( $bibcite_indices_to_keys ) - 1;
+
+		// Increment the reference index and emit the link.
+		return "[New key: ${bibcite_key}; index: ${bibcite_index}]";
 	}
 
 	/**
@@ -186,8 +185,10 @@ class Bibcite_SC_Public {
 
 		// Run through the template engine to produce the bibliography and append to the content.
 		$bibliography = "";
-		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key)
-			$bibliography .= "[Key: ${bibcite_key}; index: ${bibcite_index}]";
+		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key) {
+			$bibcite_value = Bibcite_Library::instance()->get_bibtex_entry( $bibcite_key );
+			$bibliography .= "[Key: ${bibcite_key}; value: ${bibcite_value}]";
+		}
 
 		return $processed_content . "<p>${bibliography}</p>";
 	}
