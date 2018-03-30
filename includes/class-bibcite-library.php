@@ -69,6 +69,8 @@ class Bibcite_Library
 			return $bibtex_value;
 		else
 			return null;
+
+		// KHFIXME: parse/transform here? Or somewhere else?
 	}
 
 	/**
@@ -170,9 +172,9 @@ class Bibcite_Library
 			return;
 		}
 
-		// Save the new library and parse it into the DB.
-		Bibcite_Logger::instance()->debug( "Received new library. Parsing..." );
+		// Split the library into entries and save to a DB.
+		Bibcite_Logger::instance()->debug( "Received new library. Saving..." );
 
-		// KHFIXME: TK
+		// TK
 	}
 }

@@ -21,3 +21,16 @@ Add admin settings:
 * Local cache time
 * Log level
 * Show log
+
+
+
+To parse Bibtex: 
+
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
+
+$parser = new RenanBr\BibTexParser\Parser();          // Create a Parser
+$listener = new RenanBr\BibTexParser\Listener();      // Create and configure a Listener
+$parser->addListener($listener); // Attach the Listener to the Parser
+$parser->parseString($library_body);   // or parseFile('/path/to/file.bib')
+$entries = $listener->export();  // Get processed data from the Listene
+	
