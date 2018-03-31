@@ -31,6 +31,7 @@
         "citation-style-language/styles-distribution":"@dev",
         "seboettg/citeproc-php": "^2",
         "renanbr/bibtex-parser": "^2",
-        "apache/log4php": "2.3.0"
+        "apache/log4php": "2.3.0",
+		"cocur/slugify": "^3.1"
     }
 }

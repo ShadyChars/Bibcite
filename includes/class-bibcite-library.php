@@ -1,6 +1,7 @@
 <?php
 
 include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
 
 class Bibcite_Library
 {
@@ -62,7 +63,6 @@ class Bibcite_Library
 		$this->update_library();
 
 		// Do we have the requested item as a transient? 
-		// KHFIXME: should we use a proper DB instead? We don't necessarily want these to expire.
 		$transient_key = Bibcite_Library::BIBCITE_PREFIX . "_" . $bibtex_key;
 		$bibtex_value = get_transient ( $transient_key );
 		if ( $bibtex_value !== false )
@@ -90,19 +90,29 @@ class Bibcite_Library
 			return;
 		}
 
+		// We'll write the library to a predictable filename.
+		$slugify = new Cocur\Slugify\Slugify();
+		$cache_directory = plugin_dir_path( dirname( __FILE__ ) ) . 'cache\\';
+		if (!is_dir($cache_directory))
+			mkdir($cache_directory);
+		$library_filename = $cache_directory . $slugify->slugify(Bibcite_Library::LIBRARY_URL);
+
 		Bibcite_Logger::instance()->info( 
-			"Updating library from URL (" . Bibcite_Library::LIBRARY_URL . ")..." 
-		);
+			"Getting library from URL (" . 
+			Bibcite_Library::LIBRARY_URL . 
+			") and saving to file (${library_filename})..."
+		);	
 
 		// Get the library, but only if it has an ETag different from the last one we saw.
-		$library_body = null;
 		$library_headers = [];
-		$http_code = null;
 		$curl_error = null;
+		$start_get_time = time();
 		try {
+			
+			$fp = fopen($library_filename, 'w');		
 			$ch = curl_init(); 
 			curl_setopt($ch, CURLOPT_URL, Bibcite_Library::LIBRARY_URL); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);		// Return rather than log the result
+			curl_setopt($ch, CURLOPT_FILE, $fp);				// Write to file			
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);		// Follow redirection
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);	// Ignore SSL certs
 
@@ -130,18 +140,20 @@ class Bibcite_Library
 
 			// If we don't have an ETag, we'll get the complete library.
 			if ( $this->last_etag )
+			{
+				Bibcite_Logger::instance()->debug( "Using ETag ($this->last_etag)" );
 				curl_setopt( $ch, CURLOPT_HTTPHEADER, array ( "If-None-Match: $this->last_etag" ) );
+			}
 			
-			$library_body = curl_exec($ch);		
+			curl_exec($ch);		
 			$curl_error = curl_error($ch);
-			$http_code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 			curl_close($ch);
 
 		} catch (Exception $e) {
 			Bibcite_Logger::instance()->error(
 				"Failed to get library from URL (" . Bibcite_Library::LIBRARY_URL . "): " . 
 				$e->getMessage() . 
-				" Using cached library entries."
+				" Skipping update."
 			);
 			return;
 		}
@@ -149,7 +161,7 @@ class Bibcite_Library
 		// If there's an error, report as much info as possible and quit now.
 		if ($curl_error) {
 			Bibcite_Logger::instance()->error(
-				"Error getting library: ${curl_error}. Using cached library entries."
+				"Error getting library: ${curl_error}. Skipping update."
 			);					
 			return;
 		}
@@ -167,14 +179,30 @@ class Bibcite_Library
 		);
 
 		// Did we get a new copy of the library? If not, nothing more to do.
-		if ( strlen( $library_body ) <= 0 ) {
-			Bibcite_Logger::instance()->debug( "No new library received. Using existing library." );
+		$file_mtime = filemtime($library_filename);
+		if ( !$file_mtime || $file_mtime >= $start_get_time ) {
+			Bibcite_Logger::instance()->debug( 
+				"Cached file has not changed. Using existing library." 
+			);
 			return;
 		}
 
-		// Split the library into entries and save to a DB.
-		Bibcite_Logger::instance()->debug( "Received new library. Saving..." );
+		// Parse the library into entries
+		Bibcite_Logger::instance()->debug( "Received new library. Parsing..." );
 
-		// TK
+		$start_parse_time = time();
+		$parser = new RenanBr\BibTexParser\Parser();          // Create a Parser
+		$listener = new RenanBr\BibTexParser\Listener();      // Create and configure a Listener
+		$parser->addListener($listener); // Attach the Listener to the Parser
+		$parser->parseFile($library_filename);   // or parseString($library_body)
+		$entries = $listener->export();  // Get processed data from the Listener
+		
+		$parse_duration = time() - $start_parse_time;
+		$entry_count = sizeof($entries);
+		Bibcite_Logger::instance()->debug( 
+			"Parsed ${entry_count} entries from library in ${parse_duration} seconds." 
+		);
+
+		// Write all entries to the DB.
 	}
 }
