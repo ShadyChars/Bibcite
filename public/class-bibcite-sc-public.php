@@ -2,6 +2,9 @@
 
 include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
 include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-library.php';
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-downloader.php';
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-parser.php';
+include_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
 
 /**
  * The public-facing functionality of the plugin.
@@ -24,6 +27,9 @@ include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-li
  * @author     Your Name <email@example.com>
  */
 class Bibcite_SC_Public {
+
+	// TODO: make this a setting.
+	const LIBRARY_URL = 'https://www.dropbox.com/s/m1lgya889qnz081/library.bib?dl=1';
 
 	/**
 	 * The ID of this plugin.
@@ -165,9 +171,37 @@ class Bibcite_SC_Public {
 		// Process the content of this shortcode, in case we encounter any other shortcodes
 		$processed_content = do_shortcode($content);
 
-		// Compile a list of all [bibcite] entries for this post
+		// Work out the target local filename
+		$url = Bibcite_SC_Public::LIBRARY_URL;
+		$slugify = new Cocur\Slugify\Slugify();
+		$filename = plugin_dir_path( dirname( __FILE__ ) ) . 'cache\\' .$slugify->slugify($url);
 
-		// If the Bibtex file hasn't been downloaded or parsed, do it now.
+		// Get the current set of stored entries for the named URL.
+		$bibtex_library = new Bibcite_Library($url);
+
+		// If the Bibtex file hasn't been downloaded or parsed, do it now. If we succeed in updating
+		// the local copy, update our library.
+		if (Bibcite_Downloader::save_url_to_file($url, $filename)) {
+
+			// Parse the file.
+			$bibtex_entries = Bibcite_Parser::parse_file_to_bibtex($filename);
+			Bibcite_Logger::instance()->warn(
+				"Retrieved up-to-date Bibtex library from URL (${url}). Parsing..."
+			);
+
+			// If we got any entries, update the corresponding library.
+			if (sizeof($bibtex_entries) <= 0) {
+				Bibcite_Logger::instance()->warn("No entries found in Bibtex library ($url).");	
+			} else {
+				Bibcite_Logger::instance()->debug("Updating Bibtex library ($url)...");	
+				foreach ($bibtex_entries as $bibtex_entry)
+					$bibtex_library->add_or_update($bibtex_entry);
+			}
+		} else {
+			Bibcite_Logger::instance()->warn(
+				"Failed to get up-to-date Bibtex library from URL (${url}). Using cached entries."
+			);
+		}
 
 		// Find the Bibtex entries for each [bibcite] entry in the post.
 		///////////////////////////////////////////////////////////////
@@ -186,7 +220,7 @@ class Bibcite_SC_Public {
 		// Run through the template engine to produce the bibliography and append to the content.
 		$bibliography = "";
 		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key) {
-			$bibcite_value = Bibcite_Library::instance()->get_bibtex_entry( $bibcite_key );
+			$bibcite_value = serialize($bibtex_library->get($bibcite_key));
 			$bibliography .= "[Key: ${bibcite_key}; value: ${bibcite_value}]";
 		}
 

@@ -10,9 +10,12 @@ To do:
 
 * Move logging into dedicated Bibcite_Logger class - DONE
 * Add logging to existing methods to track lifecycle - DONE
-* Work out how to download, load, parse and cache a Bibtex file - IN PROGRESS
-* Define download / file / caching behaviour - IN PROGRESS
-	* Need to work out how to use local files, if available.
+* Work out how to download, load, parse and cache a Bibtex file - DONE
+* Refactor library access, downloading, parsing and storage:
+	* Bibcite_Downloader should obtain and save an up-to-date version of a remote Bibtex file - DONE
+	* Bibcite_Parser should parse a local Bibtex file and make available a list of entries - DONE
+	* Bibcite_Library should manage creation, insertion into, access to and deletion from a database of Bibtex strings - IN PROGRESS
+	* Shortcode methods should use these classes to manage bibliography output.
 
 Add admin settings:
 
@@ -21,16 +24,3 @@ Add admin settings:
 * Local cache time
 * Log level
 * Show log
-
-
-
-To parse Bibtex: 
-
-include_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
-
-$parser = new RenanBr\BibTexParser\Parser();          // Create a Parser
-$listener = new RenanBr\BibTexParser\Listener();      // Create and configure a Listener
-$parser->addListener($listener); // Attach the Listener to the Parser
-$parser->parseString($library_body);   // or parseFile('/path/to/file.bib')
-$entries = $listener->export();  // Get processed data from the Listene
-	
