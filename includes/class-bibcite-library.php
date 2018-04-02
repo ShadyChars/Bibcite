@@ -48,27 +48,31 @@ class Bibcite_Library
 
 	/**
 	 * Add a Bibtex entry.
+	 *
+	 * @param string $citation_key the citation key that identifies the entry
+	 * @param string $bibtex a textual Bibtex entry
+	 * @return void
 	 */
-	public function add_or_update($bibtex_value) {
+	public function add_or_update($citation_key, $bibtex) {
 		global $wpdb;
 		$wpdb->replace( 
 			$this->table_name, 
-			array( 
-				'citation_key' => $bibtex_value["citation-key"],
-				'bibtex' => serialize($bibtex_value)
-			) 
+			array( 'citation_key' => $citation_key, 'bibtex' => $bibtex ) 
 		);
 	}
 
 	/**
 	 * Get a single Bibtex entry from the library corresponding to a supplied key.
+	 *
+	 * @param string $citation_key the citation key to search for
+	 * @return string|false returns the Bibtex entry if found and false if not.
 	 */
 	public function get($citation_key) {
 		global $wpdb;
 		$row = $wpdb->get_row( 
 			"SELECT * FROM $this->table_name WHERE citation_key='$citation_key'" 
 		);
-		return ($row) ? unserialize($row->bibtex) : false;
+		return ($row) ? $row->bibtex : false;
 	}
 
 	public function clear() {

@@ -9,13 +9,17 @@ include_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
 class Bibcite_Parser
 {
 	/**
-	 * @return an array of parsed entries
+	 * Parse a local file into an array of strings containing individual Bibtex entries.
+	 *
+	 * @param string $filename
+	 * @return array an array of associative arrays, where each item is a parsed Bibtex entry. The
+	 * Bibtex itself is placed in an '_original' item.
 	 */
 	public static function parse_file_to_bibtex($filename) {
 		
 		$start_parse_time = time();
 
-		// Create and run a parser
+		// Create and run a parser. We only care about 
 		$entries = array();
 		try {
 			$parser = new RenanBr\BibTexParser\Parser();
@@ -29,7 +33,6 @@ class Bibcite_Parser
 				"Failed to parse file (${filename}): " . $e->getMessage() . "."
 			);
 		}	
-
 			
 		// Log and return results
 		$parse_duration = time() - $start_parse_time;

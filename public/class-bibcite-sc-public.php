@@ -54,7 +54,7 @@ class Bibcite_SC_Public {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      string    $version    The current version of this plugin.
+	 * @var      string    $post_id_to_bibcite_keys_array    A post ID -> [bibcite entries] array.
 	 */
 	private $post_id_to_bibcite_keys_array;
 
@@ -171,6 +171,9 @@ class Bibcite_SC_Public {
 		// Process the content of this shortcode, in case we encounter any other shortcodes
 		$processed_content = do_shortcode($content);
 
+		// Get or update the Bibtex library
+		////////////////////////////////////////////////////////////////////////////////////////////
+
 		// Work out the target local filename
 		$url = Bibcite_SC_Public::LIBRARY_URL;
 		$slugify = new Cocur\Slugify\Slugify();
@@ -195,7 +198,9 @@ class Bibcite_SC_Public {
 			} else {
 				Bibcite_Logger::instance()->debug("Updating Bibtex library ($url)...");	
 				foreach ($bibtex_entries as $bibtex_entry)
-					$bibtex_library->add_or_update($bibtex_entry);
+					$bibtex_library->add_or_update(
+						$bibtex_entry["citation-key"], $bibtex_entry["_original"]
+					);
 			}
 		} else {
 			Bibcite_Logger::instance()->warn(
@@ -203,8 +208,8 @@ class Bibcite_SC_Public {
 			);
 		}
 
-		// Find the Bibtex entries for each [bibcite] entry in the post.
-		///////////////////////////////////////////////////////////////
+		// Find and render the Bibtex entries for each [bibcite] entry in the post.
+		////////////////////////////////////////////////////////////////////////////////////////////
 
 		// Work out what post we're in.
 		global $post;
@@ -217,11 +222,16 @@ class Bibcite_SC_Public {
 		else
 			$bibcite_indices_to_keys = $this->post_id_to_bibcite_keys_array[$post_id];
 
+		// Set up CiteProc and Geissler\Converter. If converter doesn't work, fix it and submit a 
+		// pull request.
+
 		// Run through the template engine to produce the bibliography and append to the content.
 		$bibliography = "";
 		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key) {
-			$bibcite_value = serialize($bibtex_library->get($bibcite_key));
-			$bibliography .= "[Key: ${bibcite_key}; value: ${bibcite_value}]";
+
+			// TODO: convert from Bibtex to CSL? Or do the conversion before writing to the DB?
+			$bibcite_value = $bibtex_library->get($bibcite_key);
+			$bibliography .= "<p>${bibcite_value}</p>";
 		}
 
 		return $processed_content . "<p>${bibliography}</p>";
