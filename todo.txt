@@ -14,10 +14,14 @@ To do:
 * Refactor library access, downloading, parsing and storage:
 	* Bibcite_Downloader should obtain and save an up-to-date version of a remote Bibtex file - DONE
 	* Bibcite_Parser should parse a local Bibtex file and make available a list of entries - DONE
-	* Bibcite_Library should manage creation, insertion into, access to and deletion from a database of Bibtex strings - IN PROGRESS
-		* Currently, this saves serialized arrays, which aren't much use when it comes to templating. Ideally, want to save in native Bibtex, RIS, or CSL format, and then format on output.
+	* Bibcite_Library should manage creation, insertion into, access to and deletion from a database of Bibtex strings - DONE		
 	* Shortcode methods should use these classes to manage bibliography output. - IN PROGRESS
-		* What shortcodes / styles of citation do I need to support?
+		* Fix Geissler\Converter - DONE
+		* Test Geissler + CiteProc w/ the complete bibliography from Mendeley - IN PROGRESS
+			* How to deal with escaped Bibtex titles? - DONE
+			* Add OrkneyDullard\Converter to travisci.org?
+			* Create pull request on the main repo?		
+		* What shortcodes / styles of citation do I need to support? Look at posts and "elsewhere" page.
 		* How to generate note links? Does this need to be stylable/templatable?
 		* Render the bibliography - what style?
 
@@ -28,3 +32,4 @@ Add admin settings:
 * Local cache time
 * Log level
 * Show log
+* Support CSL or RIS input libraries.

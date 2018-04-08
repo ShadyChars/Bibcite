@@ -1,10 +1,14 @@
 <?php
 
-include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
-include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-library.php';
-include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-downloader.php';
-include_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-parser.php';
-include_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-library.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-downloader.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-parser.php';
+require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
+
+use Geissler\Converter\Converter;
+use Geissler\Converter\Standard\BibTeX\BibTeX;
+use Geissler\Converter\Standard\CSL\CSL;
 
 /**
  * The public-facing functionality of the plugin.
@@ -222,16 +226,18 @@ class Bibcite_SC_Public {
 		else
 			$bibcite_indices_to_keys = $this->post_id_to_bibcite_keys_array[$post_id];
 
-		// Set up CiteProc and Geissler\Converter. If converter doesn't work, fix it and submit a 
-		// pull request.
+		// Set up CiteProc and Geissler\Converter (currently being served from my repo).
+		$style = Seboettg\CiteProc\StyleSheet::loadStyleSheet("din-1505-2");
+		$citeProc = new Seboettg\CiteProc\CiteProc($style);
+    	$converter  = new Converter();
 
 		// Run through the template engine to produce the bibliography and append to the content.
 		$bibliography = "";
 		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key) {
-
-			// TODO: convert from Bibtex to CSL? Or do the conversion before writing to the DB?
 			$bibcite_value = $bibtex_library->get($bibcite_key);
-			$bibliography .= "<p>${bibcite_value}</p>";
+			$csl_json_value = $converter->convert(new BibTeX($bibcite_value), new CSL());
+			$rendered_citation = $citeProc->render(json_decode($csl_json_value), "citation");
+			$bibliography .= "<p>${rendered_citation}</p>";
 		}
 
 		return $processed_content . "<p>${bibliography}</p>";

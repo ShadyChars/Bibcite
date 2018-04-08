@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e6396544db8959f581273e8336948036",
+    "content-hash": "2eb668731363ff0618c2865b614dab59",
     "packages": [
         {
             "name": "apache/log4php",
@@ -122,6 +122,63 @@
             "time": "2018-01-22T09:00:48+00:00"
         },
         {
+            "name": "geissler/converter",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/OrkneyDullard/converter.git",
+                "reference": "2955200fa0667bd6f1fa0e476272c372de2a0f1d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/2955200fa0667bd6f1fa0e476272c372de2a0f1d",
+                "reference": "2955200fa0667bd6f1fa0e476272c372de2a0f1d",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0",
+                "technosophos/libris": ">=2.0.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Geissler\\": "src/Geissler/"
+                },
+                "files": [
+                    "library/format/bibtexParse/PARSEENTRIES.php",
+                    "library/format/bibtexParse/PARSECREATORS.php",
+                    "library/format/bibtexParse/PARSEMONTH.php",
+                    "library/format/bibtexParse/PARSEPAGE.php",
+                    "library/format/BIBFORMAT.php"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Benjamin Geißler",
+                    "email": "benjamin.geissler@gmail.com"
+                }
+            ],
+            "description": "A small library to convert different bibliography formats into each other",
+            "homepage": "https://github.com/geissler/converter",
+            "keywords": [
+                "bibliography",
+                "bibtex",
+                "csl",
+                "endnote",
+                "ris"
+            ],
+            "support": {
+                "source": "https://github.com/OrkneyDullard/converter/tree/latex-special-characters"
+            },
+            "time": "2018-04-08T20:56:46+00:00"
+        },
+        {
             "name": "myclabs/php-enum",
             "version": "1.5.2",
             "source": {
@@ -164,64 +221,6 @@
                 "enum"
             ],
             "time": "2017-06-28T16:24:08+00:00"
-        },
-        {
-            "name": "renanbr/bibtex-parser",
-            "version": "2.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/renanbr/bibtex-parser.git",
-                "reference": "68ee37ed42be58cfb329ee3a4ce4e7a1b9b29864"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/renanbr/bibtex-parser/zipball/68ee37ed42be58cfb329ee3a4ce4e7a1b9b29864",
-                "reference": "68ee37ed42be58cfb329ee3a4ce4e7a1b9b29864",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.6.0"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^2.8",
-                "phpunit/phpunit": "^5.7 || ^6.0",
-                "ryakad/pandoc-php": "^1.0"
-            },
-            "suggest": {
-                "ryakad/pandoc-php": "Needed to support LaTeX decoder in class RenanBr\\BibTexParser\\Processor\\LatexToUnicodeProcessor"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "RenanBr\\BibTexParser\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Renan de Lima Barbosa",
-                    "email": "renandelima@gmail.com"
-                }
-            ],
-            "description": "BibTex Parser provides an API to read .bib files programmatically",
-            "keywords": [
-                "Bibliography",
-                "bib",
-                "bibtex",
-                "citation",
-                "cite",
-                "latex",
-                "parser"
-            ],
-            "time": "2018-02-04T03:36:15+00:00"
         },
         {
             "name": "seboettg/citeproc-php",
@@ -362,6 +361,49 @@
                 "shim"
             ],
             "time": "2018-01-30T19:27:44+00:00"
+        },
+        {
+            "name": "technosophos/LibRIS",
+            "version": "2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/technosophos/LibRIS.git",
+                "reference": "5b6628ece0e57e90bd54f3b2d8de922dc4cc662c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/technosophos/LibRIS/zipball/5b6628ece0e57e90bd54f3b2d8de922dc4cc662c",
+                "reference": "5b6628ece0e57e90bd54f3b2d8de922dc4cc662c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "LibRIS": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT or GPLv2"
+            ],
+            "authors": [
+                {
+                    "name": "M Butcher",
+                    "homepage": "http://technosophos.com"
+                }
+            ],
+            "description": "An RIS parser. RIS is a format for reference metadata.",
+            "homepage": "https://github.com/technosophos/LibRIS",
+            "keywords": [
+                "Bibliography",
+                "File parser",
+                "RIS",
+                "Reference"
+            ],
+            "time": "2012-03-14T16:36:15+00:00"
         }
     ],
     "packages-dev": [],
@@ -369,7 +411,8 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "citation-style-language/locales": 20,
-        "citation-style-language/styles-distribution": 20
+        "citation-style-language/styles-distribution": 20,
+        "geissler/converter": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

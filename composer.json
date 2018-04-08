@@ -1,5 +1,5 @@
 {
-	"name": "keith-houston/bibcite-sc",
+	"name": "OrkneyDullard/bibcite-sc",
     "repositories": [
         {
             "type": "package",
@@ -24,13 +24,17 @@
                     "reference": "master"
                 }
             }
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/OrkneyDullard/converter"
         }
     ],
     "require": {
         "citation-style-language/locales":"@dev",
         "citation-style-language/styles-distribution":"@dev",
         "seboettg/citeproc-php": "^2",
-        "renanbr/bibtex-parser": "^2",
+        "geissler/converter": "dev-master",
         "apache/log4php": "2.3.0",
 		"cocur/slugify": "^3.1"
     }

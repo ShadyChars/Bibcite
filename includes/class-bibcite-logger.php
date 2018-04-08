@@ -1,6 +1,6 @@
 <?php
 
-include_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\apache\log4php\src\main\php\Logger.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\apache\log4php\src\main\php\Logger.php';
 
 class Bibcite_Logger
 {
