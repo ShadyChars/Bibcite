@@ -123,11 +123,14 @@ class Bibcite_SC_Public {
 	}
 
 	/**
-	 * Handle a [bibcite] shortcode.
+	  * Handle a [bibcite] shortcode. When used inside a [bibshow]...[/bibshow] shortcode, this 
+	 * inserts a citation or a note to a specified citation or citations.
 	 *
-	 * @since    1.0.0
+	 * @param array $atts shortcode attributes. Only "key=<key1>[,<key2>[,...]]" is supported.
+	 * @param string $content shortcode content. Ignored.
+	 * @return void
 	 */
-	public function do_bibcite_shortcode( $atts, $content = null ) {
+	public function do_bibcite_shortcode( array $atts, string $content = null ) {
 
 		Bibcite_Logger::instance()->debug(
 			"Encountered bibcite shortcode with attributes: " . implode(", ", $atts)
@@ -148,9 +151,17 @@ class Bibcite_SC_Public {
 		$bibcite_indices_to_keys = &$this->post_id_to_bibcite_keys_array[$post_id];
 
 		// Extract the key or keys in this [bibcite key=...] shortcode. If we've already seen this 
-		// entry, reuse it.		
+		// entry, reuse it.
 		$bibcite_key = $atts["key"];
 		if ( array_key_exists( $bibcite_key, $bibcite_indices_to_keys ) ) {
+
+			// KHFIXME: deal w/ multiple references in a single citation. Put both in the 
+			// bibliography under a single numberered note, or have *n* notes separated by commas?
+
+			// KHFIXME: if we aren't inside a [bibshow] shortcode, we shouldn't show anything. How
+			// to handle this? Do we leave out all the processing here and carry it out in [bibshow]
+			// instead, replacing [bibcite] shortcodes where we find them?
+
 			$bibcite_indices_to_keys[] = $bibcite_key;
 			return "[Existing key: ${bibcite_key}]";
 		}
@@ -160,26 +171,162 @@ class Bibcite_SC_Public {
 		$bibcite_index = count ( $bibcite_indices_to_keys ) - 1;
 
 		// Increment the reference index and emit the link.
+
+		// KHFIXME: how to make this entry templateable? Should we load the entire library and
+		// make the full citation data available here, so that the entry can be templated by, e.g.
+		// author surname and year?
+
 		return "[New key: ${bibcite_key}; index: ${bibcite_index}]";
 	}
 
 	/**
-	 * Handle a [bibshow] ...[/bibshow] shortcode.
+	 * Handle enclosing [bibshow]...[/bibshow] shortcodes. Captures all [bibcite] shortcodes used
+	 * inside the [bibshow] shortcode, inserts references and then renders a bibliography at the 
+	 * closing tag containing the referenced citations.
 	 *
-	 * @since    1.0.0
+	 * @param array $atts shortcode attributes. Ignored.
+	 * @param string $content shortcode content. Ignored.
+	 * @return void
 	 */
-	public function do_bibshow_shortcode( $atts, $content = null ) {
+	public function do_bibshow_shortcode( $atts, string $content = null ) {
 
 		Bibcite_Logger::instance()->debug("Encountered bibshow shortcode");
 
 		// Process the content of this shortcode, in case we encounter any other shortcodes
 		$processed_content = do_shortcode($content);
 
-		// Get or update the Bibtex library
+		// Get or update the library for the source URL
+		$url = Bibcite_SC_Public::LIBRARY_URL;
+		$bibtex_library = $this->get_or_update_bibtex_library($url);
+
+		// Find and render the Bibtex entries for each [bibcite] entry in the post.
 		////////////////////////////////////////////////////////////////////////////////////////////
 
-		// Work out the target local filename
+		// Work out what post we're in.
+		global $post;
+		$post_id = $post->ID;
+		
+		// Do we have an array of [bibcite] entries for this post? If not, nothing to do.
+		$bibcite_indices_to_keys;
+		if ( !array_key_exists ( $post_id, $this->post_id_to_bibcite_keys_array ) )
+			return $content;
+		else
+			$bibcite_indices_to_keys = $this->post_id_to_bibcite_keys_array[$post_id];
+
+		// Set up CiteProc and Geissler\Converter (currently being served from my repo).
+		$style = Seboettg\CiteProc\StyleSheet::loadStyleSheet("din-1505-2");
+		$citeProc = new Seboettg\CiteProc\CiteProc($style);
+    	$converter  = new Converter();
+
+		// Run through the template engine to produce the bibliography and append to the content.
+		$bibliography = "";
+		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key) {
+			$bibcite_value = $bibtex_library->get($bibcite_key);
+			$csl_json_value = $converter->convert(new BibTeX($bibcite_value), new CSL());
+
+			// TODO: concatenate all relevant entries and render as a bibliography? Or use citation
+			// mode to control numbering more strictly?
+			$rendered_citation = $citeProc->render(json_decode($csl_json_value), "citation");
+			$bibliography .= "<p>${rendered_citation}</p>";
+		}
+
+		return $processed_content . "<p>${bibliography}</p>";
+	}
+
+	/**
+	 * Handle a standalone [bibtex] shortcode. This renders a bibliography at the shortcode 
+	 * location, populated only with the reference keys.
+	 *
+	 * @param array $atts shortcode attributes. Only "key=<key1>[,<key2>[,...]]" is supported.
+	 * @param string $content shortcode content. Ignored.
+	 * @return string|null
+	 */
+	public function do_bibtex_shortcode( array $atts, string $content = null ) {
+
+		// Get or update the library for the source URL
 		$url = Bibcite_SC_Public::LIBRARY_URL;
+		$bibtex_library = $this->get_or_update_bibtex_library($url);
+
+		// Extract the set of requested keys.
+		// TK: allow more sophisticated key queries
+		$keys = null;
+		try {
+			$keys = $atts["key"];
+			Bibcite_Logger::instance()->debug("Encountered bibtex shortcode with keys: " . $keys);
+		}
+		catch (Exception $e) {
+			Bibcite_Logger::instance()->error(
+				"Failed to get keys from [bibtex] shortcode attributes: " . $e->getMessage() . "."
+			);
+			return null;
+		}
+
+		// Get the set of entries to be rendered and convert to CSL JSON.		
+		$converter  = new Converter();
+		$csl_entries = array();
+		foreach (explode(",", $keys) as $bibtex_key ) {
+			$bibtex_value = $bibtex_library->get($bibtex_key);
+			if ($bibtex_value) {
+				try {
+					Bibcite_Logger::instance()->debug("Found Bibtex library entry: " . $bibtex_key);
+					$csl_entries[] = $converter->convert(new BibTeX($bibtex_value), new CSL());
+				} catch (Exception $e) {
+					Bibcite_Logger::instance()->error(
+						"Exception when converting Bibtex to CSL: $bibtex_value \nException: "
+						. $e->getMessage()
+					);
+				}
+			} else {
+				Bibcite_Logger::instance()->warn(
+					"Could not find Bibtex library entry: " . $bibtex_key
+				);
+				continue;
+			}
+		}
+
+		// Do we need to sort the entries?
+		/*$sort = isset($atts['sort']) ? $atts['sort'] : false;
+		if ($sort)
+		{
+			switch ($sort)
+			{
+				case 'year':
+					array_
+			}
+		}*/
+
+		// Has the caller specified a custom template?
+
+		// Render the entries with the specified template.
+		// Set up CiteProc and Geissler\Converter (currently being served from my repo).
+		$style = Seboettg\CiteProc\StyleSheet::loadStyleSheet("chicago-fullnote-bibliography-16th-edition");
+		$citeProc = new Seboettg\CiteProc\CiteProc($style);
+		$bibliography = "<ul>";
+		foreach ($csl_entries as $csl_entry) {
+			try {
+				$bibliography_entry = $citeProc->render(json_decode($csl_entry), "bibliography");
+				$bibliography .= "<li>" . $bibliography_entry  . "</li>";
+			} catch (Exception $e) {
+				Bibcite_Logger::instance()->error(
+					"Exception when rendering CSL: $csl_entry\nException: " . $e->getMessage()
+				);
+			}
+		}
+
+		$bibliography .= "</ul>";
+
+		return $bibliography;
+	}
+
+	/**
+	 * Get or update a Bibcite_Library instance representing the contents of the specified URL.
+	 *
+	 * @param string $url URL of a Bibtex library to be fetched.
+	 * @return Bibcite_Library
+	 */
+	private function get_or_update_bibtex_library($url) {
+		
+		// Work out the target local filename		
 		$slugify = new Cocur\Slugify\Slugify();
 		$filename = plugin_dir_path( dirname( __FILE__ ) ) . 'cache\\' .$slugify->slugify($url);
 
@@ -212,34 +359,6 @@ class Bibcite_SC_Public {
 			);
 		}
 
-		// Find and render the Bibtex entries for each [bibcite] entry in the post.
-		////////////////////////////////////////////////////////////////////////////////////////////
-
-		// Work out what post we're in.
-		global $post;
-		$post_id = $post->ID;
-		
-		// Do we have an array of [bibcite] entries for this post? If not, nothing to do.
-		$bibcite_indices_to_keys;
-		if ( !array_key_exists ( $post_id, $this->post_id_to_bibcite_keys_array ) )
-			return $content;
-		else
-			$bibcite_indices_to_keys = $this->post_id_to_bibcite_keys_array[$post_id];
-
-		// Set up CiteProc and Geissler\Converter (currently being served from my repo).
-		$style = Seboettg\CiteProc\StyleSheet::loadStyleSheet("din-1505-2");
-		$citeProc = new Seboettg\CiteProc\CiteProc($style);
-    	$converter  = new Converter();
-
-		// Run through the template engine to produce the bibliography and append to the content.
-		$bibliography = "";
-		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key) {
-			$bibcite_value = $bibtex_library->get($bibcite_key);
-			$csl_json_value = $converter->convert(new BibTeX($bibcite_value), new CSL());
-			$rendered_citation = $citeProc->render(json_decode($csl_json_value), "citation");
-			$bibliography .= "<p>${rendered_citation}</p>";
-		}
-
-		return $processed_content . "<p>${bibliography}</p>";
-	}
+		return $bibtex_library;
+	} 
 }

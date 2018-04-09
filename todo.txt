@@ -6,30 +6,26 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
-To do:
-
-* Move logging into dedicated Bibcite_Logger class - DONE
-* Add logging to existing methods to track lifecycle - DONE
-* Work out how to download, load, parse and cache a Bibtex file - DONE
-* Refactor library access, downloading, parsing and storage:
-	* Bibcite_Downloader should obtain and save an up-to-date version of a remote Bibtex file - DONE
-	* Bibcite_Parser should parse a local Bibtex file and make available a list of entries - DONE
-	* Bibcite_Library should manage creation, insertion into, access to and deletion from a database of Bibtex strings - DONE		
-	* Shortcode methods should use these classes to manage bibliography output. - IN PROGRESS
-		* Fix Geissler\Converter - DONE
-		* Test Geissler + CiteProc w/ the complete bibliography from Mendeley - IN PROGRESS
-			* How to deal with escaped Bibtex titles? - DONE
-			* Add OrkneyDullard\Converter to travisci.org?
-			* Create pull request on the main repo?		
-		* What shortcodes / styles of citation do I need to support? Look at posts and "elsewhere" page.
-		* How to generate note links? Does this need to be stylable/templatable?
-		* Render the bibliography - what style?
-
 Add admin settings:
 
+* Citation styles and where to find them
+* Citation mode: 
+	* entry note style and entry template
+	* bibliography entry style and list template
+* Biblography mode: entry style and list template
 * URL(s) of bibliographies
 	* Add the ability to upload files directly? Store in a separate dir and check dates/times periodically? Can probably use the same logic as for a remote file. Might be worth having multiple Bibcite_Library instances w/ backed either by a URL or file, and with derived/specialised download/check cache date mechanisms.
-* Local cache time
+* Local no-download time
+* Clear all cached data
 * Log level
 * Show log
-* Support CSL or RIS input libraries.
+
+Features:
+
+* Detect CSL or RIS input libraries
+
+OrkneyDullard/converter
+
+* How to deal w/ braces around titles?
+* Add OrkneyDullard\Converter to travisci.org?
+* Create pull request on the main repo?		

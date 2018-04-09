@@ -193,6 +193,7 @@ class Bibcite_SC {
 
 		$this->loader->add_shortcode( 'bibcite', $plugin_public, 'do_bibcite_shortcode' );
 		$this->loader->add_shortcode( 'bibshow', $plugin_public, 'do_bibshow_shortcode' );
+		$this->loader->add_shortcode( 'bibtex', $plugin_public, 'do_bibtex_shortcode' );
 
 	}
 
