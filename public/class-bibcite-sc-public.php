@@ -297,15 +297,28 @@ class Bibcite_SC_Public {
 
 		// Has the caller specified a custom template?
 
-		// Render the entries with the specified template.
-		// Set up CiteProc and Geissler\Converter (currently being served from my repo).
+		// Render the entries with the specified CiteProc style
 		$style = Seboettg\CiteProc\StyleSheet::loadStyleSheet("chicago-fullnote-bibliography-16th-edition");
 		$citeProc = new Seboettg\CiteProc\CiteProc($style);
-		$bibliography = "<ul>";
+		$rendered_entries = array();
+		$index = 1;
 		foreach ($csl_entries as $csl_entry) {
 			try {
-				$bibliography_entry = $citeProc->render(json_decode($csl_entry), "bibliography");
-				$bibliography .= "<li>" . $bibliography_entry  . "</li>";
+				// Decode the JSON to an array
+				$csl_associative_array = json_decode($csl_entry);
+
+				// Save the rendered entry as an array
+				// KHFIXME: make these key values constant. What other values are necessary?
+				// KHFIXME: factor into a separate method - use for both single and multiple 
+				// entries.
+				$rendered_entries[] = array(
+					"note_indices" => null,			// no referring notes
+					"citation_index" => $index++,	// 1-based indexing
+					"citation_key" => $csl_associative_array[""],
+					"csl_citation" => $csl_associative_array,
+					"rendered_citation" => 
+						$citeProc->render($csl_associative_array, "bibliography")
+				);
 			} catch (Exception $e) {
 				Bibcite_Logger::instance()->error(
 					"Exception when rendering CSL: $csl_entry\nException: " . $e->getMessage()
@@ -313,7 +326,7 @@ class Bibcite_SC_Public {
 			}
 		}
 
-		$bibliography .= "</ul>";
+		// Lastly, run the rendered entries through our Twig template to generate the bibliography.
 
 		return $bibliography;
 	}
@@ -328,7 +341,14 @@ class Bibcite_SC_Public {
 		
 		// Work out the target local filename		
 		$slugify = new Cocur\Slugify\Slugify();
-		$filename = plugin_dir_path( dirname( __FILE__ ) ) . 'cache\\' .$slugify->slugify($url);
+		$filename = implode( 
+			DIRECTORY_SEPARATOR, 
+			array( 
+				plugin_dir_path(dirname(__FILE__)), 
+				BIBCITE_SC_CACHE_DIRECTORY, 
+				$slugify->slugify($url)
+			)
+		);
 
 		// Get the current set of stored entries for the named URL.
 		$bibtex_library = new Bibcite_Library($url);

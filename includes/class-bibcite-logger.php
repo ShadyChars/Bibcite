@@ -10,9 +10,14 @@ class Bibcite_Logger
 	// The root logger.
 	private $log;
 
-	// The singleton method
-	public static function instance()
-	{
+	/**
+	 * Get the singleton instance of this class.
+	 *
+	 * @return Bibcite_Logger
+	 * @author Keith Houston <keith@shadycharacters.co.uk>
+	 * @since 1.0.0
+	 */
+	public static function instance() : Bibcite_Logger {
 		if (!isset(self::$instance)) {
 			self::$instance = new Bibcite_Logger();
 		}

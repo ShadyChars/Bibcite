@@ -8,9 +8,6 @@ require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
  */
 class Bibcite_Library
 {
-	// Prefix used for all our transient and option values. TODO - make this global.
-	private const BIBCITE_PREFIX = 'BIBCITE_SC';
-
 	// Source URL and corresponding table name.
 	private $name;
 	private $table_name;
@@ -24,7 +21,7 @@ class Bibcite_Library
 
 		// Record the requested table name, then create a DB-friendly, prefixed version.
 		$this->name = $name;
-		$this->table_name = $wpdb->prefix . Bibcite_Library::BIBCITE_PREFIX . "_" . md5($name);
+		$this->table_name = $wpdb->prefix . BIBCITE_SC_PREFIX . "_" . md5($name);
 		Bibcite_Logger::instance()->debug("Using table ($name) with name ($this->table_name).");
 
 		// Create the DB, if it doesn't already exist.		

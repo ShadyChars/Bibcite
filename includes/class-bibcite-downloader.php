@@ -3,12 +3,11 @@
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
 require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
 
-
+/**
+ * A static class used to download and cache specified URLs.
+ */
 class Bibcite_Downloader
 {
-	// Prefix used for all our transient and option values. TODO - make this global.
-	private const BIBCITE_PREFIX = 'BIBCITE_SC';
-
 	// How long should we wait between HTTP requests?
 	private const HTTP_DORMANCY_SECONDS = 300;
 	private const TRANSIENT_EXPIRATION_SECONDS = 3600 * 24 * 30;	// 30 days
@@ -22,7 +21,7 @@ class Bibcite_Downloader
 		// Include the filename in our DB prefixes to scope our data
 		$slugify = new Cocur\Slugify\Slugify();
 		$filename_slug = $slugify->slugify($filename);
-		$transient_prefix = Bibcite_Downloader::BIBCITE_PREFIX . "." . $filename_slug . ".";
+		$transient_prefix = BIBCITE_SC_PREFIX . "." . $filename_slug . ".";
 
 		// Get the last known ETag for this file, if any
 		$etag_transient_name = $transient_prefix . "last-etag";

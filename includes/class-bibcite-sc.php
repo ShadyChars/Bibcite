@@ -21,8 +21,8 @@ require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-lo
  * This is used to define internationalization, admin-specific hooks, and
  * public-facing site hooks.
  *
- * Also maintains the unique identifier of this plugin as well as the current
- * version of the plugin.
+ * Also maintains the unique identifier of this plugin, the current version of the plugin, and 
+ * other plugin-wide constants.
  *
  * @since      1.0.0
  * @package    Bibcite_SC
@@ -160,8 +160,8 @@ class Bibcite_SC {
 
 		$plugin_admin = new Bibcite_SC_Admin( $this->get_bibcite_sc(), $this->get_version() );
 
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'init' );
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'menu' );
 
 	}
 
