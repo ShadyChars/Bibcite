@@ -6,6 +6,8 @@ require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
 /**
  * Provides a single point of access for persistent options/settings.
  */
+
+// TODO: how to reconcile this class w/ Bibcite_SC_Admin?
 class Bibcite_Options
 {
 	/**

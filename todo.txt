@@ -10,8 +10,8 @@ Add admin settings and features:
 
 * Citation styles and where to find them
 	* Citation mode: 
-		* entry note style and entry template
 		* bibliography entry style and list template
+		* entry note style and entry template		
 	* Biblography mode: entry style and list template
 	* If there a bibliography available, let the user render one of the entries
 * Test and update params on all shortcodes
@@ -30,6 +30,7 @@ Features:
 	* Refactoring: can anything be done better or more reliably?
 	* Installation, activation, deactivation, uninstallation?
 * Detect CSL or RIS input libraries
+* Add user-specified CSL style directory
 
 OrkneyDullard/converter
 

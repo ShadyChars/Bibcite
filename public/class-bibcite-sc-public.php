@@ -4,6 +4,7 @@ require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-lo
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-library.php';
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-downloader.php';
 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-parser.php';
+require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin\class-bibcite-sc-admin.php';
 require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
 
 use Geissler\Converter\Converter;
@@ -213,24 +214,36 @@ class Bibcite_SC_Public {
 		else
 			$bibcite_indices_to_keys = $this->post_id_to_bibcite_keys_array[$post_id];
 
-		// Set up CiteProc and Geissler\Converter (currently being served from my repo).
-		$style = Seboettg\CiteProc\StyleSheet::loadStyleSheet("din-1505-2");
-		$citeProc = new Seboettg\CiteProc\CiteProc($style);
-    	$converter  = new Converter();
-
-		// Run through the template engine to produce the bibliography and append to the content.
-		$bibliography = "";
+		// Convert entries to CSL arrays
+		$converter  = new Converter();
+		$csl_entries = array();
 		foreach ($bibcite_indices_to_keys as $bibcite_index => $bibcite_key) {
-			$bibcite_value = $bibtex_library->get($bibcite_key);
-			$csl_json_value = $converter->convert(new BibTeX($bibcite_value), new CSL());
+			try {
+				$bibcite_value = $bibtex_library->get($bibcite_key);
+				Bibcite_Logger::instance()->debug("Found Bibtex library entry: " . $bibcite_key);
 
-			// TODO: concatenate all relevant entries and render as a bibliography? Or use citation
-			// mode to control numbering more strictly?
-			$rendered_citation = $citeProc->render(json_decode($csl_json_value), "citation");
-			$bibliography .= "<p>${rendered_citation}</p>";
+				// Note that convert() returns an JSON string representing an array of entries,
+				// but we're only supplying a single entry to it. Thus, we take a conents of 
+				// the first decoded object from that array.
+				$csl_json_string = $converter->convert(new BibTeX($bibcite_value), new CSL());
+				$csl_json_object = json_decode($csl_json_string)[0];
+				$csl_entries[] = $csl_json_object;
+			} catch (Exception $e) {
+				Bibcite_Logger::instance()->error(
+					"Exception when converting Bibtex to CSL: $bibtex_value \nException: "
+					. $e->getMessage()
+				);
+			}
 		}
 
-		return $processed_content . "<p>${bibliography}</p>";
+		// Render and return the bibliography.
+		$bibliography = Bibcite_Renderer::instance()->renderCslEntries(
+			$csl_entries, 
+			get_option(Bibcite_SC_Admin::BIBSHOW_STYLE_NAME),
+			get_option(Bibcite_SC_Admin::BIBSHOW_TEMPLATE_NAME)
+		);
+
+		return $processed_content . $bibliography;
 	}
 
 	/**
@@ -267,9 +280,15 @@ class Bibcite_SC_Public {
 		foreach (explode(",", $keys) as $bibtex_key ) {
 			$bibtex_value = $bibtex_library->get($bibtex_key);
 			if ($bibtex_value) {
-				try {
+				try {					
 					Bibcite_Logger::instance()->debug("Found Bibtex library entry: " . $bibtex_key);
-					$csl_entries[] = $converter->convert(new BibTeX($bibtex_value), new CSL());
+
+					// Note that convert() returns an JSON string representing an array of entries,
+					// but we're only supplying a single entry to it. Thus, we take a conents of 
+					// the first decoded object from that array.
+					$csl_json_string = $converter->convert(new BibTeX($bibtex_value), new CSL());
+					$csl_json_object = json_decode($csl_json_string)[0];
+					$csl_entries[] = $csl_json_object;
 				} catch (Exception $e) {
 					Bibcite_Logger::instance()->error(
 						"Exception when converting Bibtex to CSL: $bibtex_value \nException: "
@@ -295,40 +314,12 @@ class Bibcite_SC_Public {
 			}
 		}*/
 
-		// Has the caller specified a custom template?
-
-		// Render the entries with the specified CiteProc style
-		$style = Seboettg\CiteProc\StyleSheet::loadStyleSheet("chicago-fullnote-bibliography-16th-edition");
-		$citeProc = new Seboettg\CiteProc\CiteProc($style);
-		$rendered_entries = array();
-		$index = 1;
-		foreach ($csl_entries as $csl_entry) {
-			try {
-				// Decode the JSON to an array
-				$csl_associative_array = json_decode($csl_entry);
-
-				// Save the rendered entry as an array
-				// KHFIXME: make these key values constant. What other values are necessary?
-				// KHFIXME: factor into a separate method - use for both single and multiple 
-				// entries.
-				$rendered_entries[] = array(
-					"note_indices" => null,			// no referring notes
-					"citation_index" => $index++,	// 1-based indexing
-					"citation_key" => $csl_associative_array[""],
-					"csl_citation" => $csl_associative_array,
-					"rendered_citation" => 
-						$citeProc->render($csl_associative_array, "bibliography")
-				);
-			} catch (Exception $e) {
-				Bibcite_Logger::instance()->error(
-					"Exception when rendering CSL: $csl_entry\nException: " . $e->getMessage()
-				);
-			}
-		}
-
-		// Lastly, run the rendered entries through our Twig template to generate the bibliography.
-
-		return $bibliography;
+		// Render and return the bibliography.
+		return Bibcite_Renderer::instance()->renderCslEntries(
+			$csl_entries, 
+			get_option(Bibcite_SC_Admin::BIBTEX_STYLE_NAME),
+			get_option(Bibcite_SC_Admin::BIBTEX_TEMPLATE_NAME)
+		);
 	}
 
 	/**
