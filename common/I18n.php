@@ -1,16 +1,17 @@
 <?php
 
+namespace Bibcite\Common;
+
 /**
  * Define the internationalization functionality
  *
  * Loads and defines the internationalization files for this plugin
  * so that it is ready for translation.
  *
- * @link       http://example.com
+ * @link       https://github.com/OrkneyDullard/bibcite
  * @since      1.0.0
  *
- * @package    Bibcite_SC
- * @subpackage Bibcite_SC/includes
+ * @package    Bibcite/Common
  */
 
 /**
@@ -20,11 +21,10 @@
  * so that it is ready for translation.
  *
  * @since      1.0.0
- * @package    Bibcite_SC
- * @subpackage Bibcite_SC/includes
- * @author     Your Name <email@example.com>
+ * @package    Bibcite/Common
+ * @author     Keith Houston <keith@shadycharacters.co.uk>
  */
-class Bibcite_SC_i18n {
+class I18n {
 
 
 	/**
@@ -41,7 +41,4 @@ class Bibcite_SC_i18n {
 		);
 
 	}
-
-
-
 }

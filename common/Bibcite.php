@@ -1,6 +1,8 @@
 <?php
 
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
+namespace Bibcite\Common;
+
+require plugin_dir_path(dirname(__FILE__)) . 'vendor\autoload.php';
 
 /**
  * The file that defines the core plugin class
@@ -8,11 +10,11 @@ require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-lo
  * A class definition that includes attributes and functions used across both the
  * public-facing side of the site and the admin area.
  *
- * @link       http://example.com
+ * @link       https://github.com/OrkneyDullard/bibcite
  * @since      1.0.0
  *
- * @package    Bibcite_SC
- * @subpackage Bibcite_SC/includes
+ * @package    Bibcite
+ * @subpackage Bibcite/includes
  */
 
 /**
@@ -25,11 +27,11 @@ require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-lo
  * other plugin-wide constants.
  *
  * @since      1.0.0
- * @package    Bibcite_SC
- * @subpackage Bibcite_SC/includes
- * @author     Your Name <email@example.com>
+ * @package    Bibcite
+ * @subpackage Bibcite/includes
+ * @author     Keith Houston <keith@shadycharacters.co.uk>
  */
-class Bibcite_SC {
+class Bibcite {
 
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power
@@ -37,7 +39,7 @@ class Bibcite_SC {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      Bibcite_SC_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @var      Bibcite_Loader    $loader    Maintains and registers all hooks for the plugin.
 	 */
 	protected $loader;
 
@@ -70,7 +72,7 @@ class Bibcite_SC {
 	 */
 	public function __construct() {
 
-		Bibcite_Logger::instance()->debug("Loading bibcite-sc plugin...");
+		Logger::instance()->debug("Loading bibcite-sc plugin...");
 
 		if ( defined( 'BIBCITE_SC_VERSION' ) ) {
 			$this->version = BIBCITE_SC_VERSION;
@@ -92,10 +94,10 @@ class Bibcite_SC {
 	 *
 	 * Include the following files that make up the plugin:
 	 *
-	 * - Bibcite_SC_Loader. Orchestrates the hooks of the plugin.
-	 * - Bibcite_SC_i18n. Defines internationalization functionality.
-	 * - Bibcite_SC_Admin. Defines all hooks for the admin area.
-	 * - Bibcite_SC_Public. Defines all hooks for the public side of the site.
+	 * - Bibcite_Loader. Orchestrates the hooks of the plugin.
+	 * - Bibcite_i18n. Defines internationalization functionality.
+	 * - Bibcite_Admin. Defines all hooks for the admin area.
+	 * - Bibcite_Public. Defines all hooks for the public side of the site.
 	 *
 	 * Create an instance of the loader which will be used to register the hooks
 	 * with WordPress.
@@ -105,37 +107,14 @@ class Bibcite_SC {
 	 */
 	private function load_dependencies() {
 
-		/**
-		 * The class responsible for orchestrating the actions and filters of the
-		 * core plugin.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bibcite-sc-loader.php';
-
-		/**
-		 * The class responsible for defining internationalization functionality
-		 * of the plugin.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-bibcite-sc-i18n.php';
-
-		/**
-		 * The class responsible for defining all actions that occur in the admin area.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-bibcite-sc-admin.php';
-
-		/**
-		 * The class responsible for defining all actions that occur in the public-facing
-		 * side of the site.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-bibcite-sc-public.php';
-
-		$this->loader = new Bibcite_SC_Loader();
+		$this->loader = new Loader();
 
 	}
 
 	/**
 	 * Define the locale for this plugin for internationalization.
 	 *
-	 * Uses the Bibcite_SC_i18n class in order to set the domain and to register the hook
+	 * Uses the Bibcite_i18n class in order to set the domain and to register the hook
 	 * with WordPress.
 	 *
 	 * @since    1.0.0
@@ -143,7 +122,7 @@ class Bibcite_SC {
 	 */
 	private function set_locale() {
 
-		$plugin_i18n = new Bibcite_SC_i18n();
+		$plugin_i18n = new I18n();
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
 
@@ -158,7 +137,7 @@ class Bibcite_SC {
 	 */
 	private function define_admin_hooks() {
 
-		$plugin_admin = new Bibcite_SC_Admin( $this->get_bibcite_sc(), $this->get_version() );
+		$plugin_admin = new \Bibcite\Admin\Admin($this->get_bibcite_sc(), $this->get_version());
 
 		$this->loader->add_action( 'admin_init', $plugin_admin, 'init' );
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'menu' );
@@ -174,7 +153,7 @@ class Bibcite_SC {
 	 */
 	private function define_public_hooks() {
 
-		$plugin_public = new Bibcite_SC_Public( $this->get_bibcite_sc(), $this->get_version() );
+		$plugin_public = new \Bibcite\Main\Main($this->get_bibcite_sc(), $this->get_version());
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
@@ -189,7 +168,7 @@ class Bibcite_SC {
 	 */
 	private function define_shortcodes() {
 
-		$plugin_public = new Bibcite_SC_Public( $this->get_bibcite_sc(), $this->get_version() );
+		$plugin_public = new \Bibcite\Main\Main($this->get_bibcite_sc(), $this->get_version());
 
 		$this->loader->add_shortcode( 'bibcite', $plugin_public, 'do_bibcite_shortcode' );
 		$this->loader->add_shortcode( 'bibshow', $plugin_public, 'do_bibshow_shortcode' );
@@ -221,7 +200,7 @@ class Bibcite_SC {
 	 * The reference to the class that orchestrates the hooks with the plugin.
 	 *
 	 * @since     1.0.0
-	 * @return    Bibcite_SC_Loader    Orchestrates the hooks of the plugin.
+	 * @return    Bibcite_Loader    Orchestrates the hooks of the plugin.
 	 */
 	public function get_loader() {
 		return $this->loader;

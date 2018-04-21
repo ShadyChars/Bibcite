@@ -1,5 +1,12 @@
 {
-	"name": "OrkneyDullard/bibcite-sc",
+    "name": "OrkneyDullard/bibcite-sc",
+    "autoload": {
+        "psr-4": {
+            "Bibcite\\Main\\": "main",
+            "Bibcite\\Common\\": "common",
+            "Bibcite\\Admin\\": "admin"
+        }
+    },
     "repositories": [
         {
             "type": "package",

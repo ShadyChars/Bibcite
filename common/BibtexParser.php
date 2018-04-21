@@ -1,35 +1,40 @@
 <?php
 
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
+namespace Bibcite\Common;
+
 require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
 
 /**
  * Parses a local Bibtex file and returns a list of parsed entries.
+ *
+ * @author Keith Houston <keith@shadycharacters.co.uk>
+ * @package Bibcite\Common
+ * @since 1.0.0
  */
-class Bibcite_Parser
+class BibtexParser
 {
 	/**
 	 * Parse a local file into an array of strings containing individual Bibtex entries.
 	 *
 	 * @param string $filename
-	 * @return array an array of associative arrays, where each item is a parsed Bibtex entry. The
-	 * Bibtex itself is placed in an '_original' item.
+	 * @return array an array of associative arrays, where each associative array is a 
+	 * parsed Bibtex entry. The Bibtex string itself is placed in an '_original' item.
 	 */
-	public static function parse_file_to_bibtex($filename) {
+	public static function parse_file_to_bibtex(string $filename) : array {
 		
 		$start_parse_time = time();
 
-		// Create and run a parser. We only care about 
+		// Create and run a parser.
 		$entries = array();
 		try {
-			$parser = new RenanBr\BibTexParser\Parser();
-			$listener = new RenanBr\BibTexParser\Listener();
+			$parser = new \RenanBr\BibTexParser\Parser();
+			$listener = new \RenanBr\BibTexParser\Listener();
 			$parser->addListener($listener);
 			$parser->parseFile($filename);
 			$entries = $listener->export();
 		}
 		catch (Exception $e) {
-			Bibcite_Logger::instance()->error(
+			Logger::instance()->error(
 				"Failed to parse file (${filename}): " . $e->getMessage() . "."
 			);
 		}	
@@ -37,7 +42,7 @@ class Bibcite_Parser
 		// Log and return results
 		$parse_duration = time() - $start_parse_time;
 		$entry_count = sizeof($entries);
-		Bibcite_Logger::instance()->debug( 
+		Logger::instance()->debug( 
 			"Parsed ${entry_count} entries from ${filename} in ${parse_duration} seconds." 
 		);
 		

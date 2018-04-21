@@ -7,17 +7,17 @@
  * file also includes all of the dependencies used by the plugin, registers activation,
  * deactivation and uninstallation functions, and defines a function that starts the plugin.
  *
- * @link              http://example.com
+ * @link              https://github.com/OrkneyDullard/bibcite
  * @since             1.0.0
- * @package           Bibcite_SC
+ * @package           Bibcite
  *
  * @wordpress-plugin
  * Plugin Name:       bibcite-sc
- * Plugin URI:        http://example.com/bibcite-sc-uri/
+ * Plugin URI:        https://github.com/OrkneyDullard/bibcite
  * Description:       A simple Bibtex parser and citation generator.
  * Version:           1.0.0
  * Author:            Keith Houston
- * Author URI:        http://example.com/
+ * Author URI:        https://github.com/OrkneyDullard/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       bibcite-sc
@@ -27,6 +27,8 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
+
+require plugin_dir_path(__FILE__) . 'vendor\autoload.php';
 
 /**
  * Currently plugin version.
@@ -49,8 +51,7 @@ define( 'BIBCITE_SC_CACHE_DIRECTORY', 'cache' );
  * This action is documented in includes/class-bibcite-sc-activator.php
  */
 function activate_bibcite_sc() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bibcite-sc-activator.php';
-	Bibcite_SC_Activator::activate();
+	Bibcite\Common\Activator::activate();
 }
 
 /**
@@ -58,8 +59,7 @@ function activate_bibcite_sc() {
  * This action is documented in includes/class-bibcite-sc-deactivator.php
  */
 function deactivate_bibcite_sc() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bibcite-sc-deactivator.php';
-	Bibcite_SC_Deactivator::deactivate();
+	Bibcite\Common\Deactivator::deactivate();
 }
 
 /**
@@ -67,19 +67,12 @@ function deactivate_bibcite_sc() {
  * This action is documented in includes/class-bibcite-sc-uninstaller.php
  */
 function uninstall_bibcite_sc() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bibcite-sc-uninstaller.php';
-	Bibcite_SC_uninstaller::uninstall();
+	Bibcite\Common\Uninstaller::uninstall();
 }
 
 register_activation_hook( __FILE__, 'activate_bibcite_sc' );
 register_deactivation_hook( __FILE__, 'deactivate_bibcite_sc' );
 register_uninstall_hook( __FILE__, 'uninstall_bibcite_sc' );
-
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing site hooks.
- */
-require plugin_dir_path( __FILE__ ) . 'includes/class-bibcite-sc.php';
 
 /**
  * Begins execution of the plugin.
@@ -92,7 +85,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-bibcite-sc.php';
  */
 function run_bibcite_sc() {
 
-	$plugin = new Bibcite_SC();
+	$plugin = new Bibcite\Common\Bibcite();
 	$plugin->run();
 
 }

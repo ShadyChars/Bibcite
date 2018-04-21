@@ -1,8 +1,17 @@
 <?php
 
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\apache\log4php\src\main\php\Logger.php';
+namespace Bibcite\Common;
 
-class Bibcite_Logger
+require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
+
+/**
+ * A singleton logging class.
+ *
+ * @author Keith Houston <keith@shadycharacters.co.uk>
+ * @package Bibcite\Common
+ * @since 1.0.0
+ */
+class Logger
 {
 	// Hold an instance of the class
 	private static $instance;
@@ -13,13 +22,13 @@ class Bibcite_Logger
 	/**
 	 * Get the singleton instance of this class.
 	 *
-	 * @return Bibcite_Logger
+	 * @return Logger
 	 * @author Keith Houston <keith@shadycharacters.co.uk>
 	 * @since 1.0.0
 	 */
-	public static function instance() : Bibcite_Logger {
+	public static function instance() : Logger {
 		if (!isset(self::$instance)) {
-			self::$instance = new Bibcite_Logger();
+			self::$instance = new Logger();
 		}
 		return self::$instance;
 	}
@@ -28,18 +37,18 @@ class Bibcite_Logger
 
 		// Use an anonymous object 
 		$configuration = array();
-		Logger::configure(
+		\Logger::configure(
 			$configuration, 
-			new class implements LoggerConfigurator {
-				public function configure(LoggerHierarchy $hierarchy, $input = null) {
+			new class implements \LoggerConfigurator {
+				public function configure(\LoggerHierarchy $hierarchy, $input = null) {
 
 					// A simple layour
-					$layout = new LoggerLayoutPattern();
+					$layout = new \LoggerLayoutPattern();
 					$layout->setConversionPattern("%date [%level] %msg%newline");
 					$layout->activateOptions();
 							
 					// Create an appender which logs to file
-					$appFile = new LoggerAppenderFile('foo');
+					$appFile = new \LoggerAppenderFile('foo');
 					$appFile->setFile(dirname(__FILE__) . "\..\logs/bibcite-sc.log");
 					$appFile->setAppend(true);
 					$appFile->setThreshold('all');
@@ -53,7 +62,7 @@ class Bibcite_Logger
 			}
 		);
 
-		$this->log = Logger::getLogger('bibcite-sc');
+		$this->log = \Logger::getLogger('bibcite-sc');
 	}
 
 	public function debug($message) {

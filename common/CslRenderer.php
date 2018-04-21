@@ -1,15 +1,17 @@
 <?php
 
-require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes\class-bibcite-logger.php';
+namespace Bibcite\Common;
+
 require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
 
 /**
  * Provides a single point of access to citation rendering services and associated data.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
+ * @package Bibcite\Common
  * @since 1.0.0
  */
-class Bibcite_Renderer
+class CslRenderer
 {
 	// Hold an instance of the class
 	private static $instance;
@@ -29,14 +31,14 @@ class Bibcite_Renderer
 	/**
 	 * Get the singleton instance of this class.
 	 *
-	 * @return Bibcite_Renderer
+	 * @return CslRenderer
 	 * @author Keith Houston <keith@shadycharacters.co.uk>
 	 * @since 1.0.0
 	 */
-	public static function instance() : Bibcite_Renderer
+	public static function instance() : CslRenderer
 	{
 		if (!isset(self::$instance)) {
-			self::$instance = new Bibcite_Renderer();
+			self::$instance = new CslRenderer();
 		}
 		return self::$instance;
 	}
@@ -54,9 +56,9 @@ class Bibcite_Renderer
 			)
 		);
 
-		$dir_iterator = new RecursiveDirectoryIterator($this->csl_styles_path);
-		$iterator = new RecursiveIteratorIterator(
-			$dir_iterator, RecursiveIteratorIterator::SELF_FIRST
+		$dir_iterator = new \RecursiveDirectoryIterator($this->csl_styles_path);
+		$iterator = new \RecursiveIteratorIterator(
+			$dir_iterator, \RecursiveIteratorIterator::SELF_FIRST
 		);
 
 		$this->csl_style_names = array();
@@ -68,9 +70,9 @@ class Bibcite_Renderer
 			DIRECTORY_SEPARATOR, array( plugin_dir_path(dirname(__FILE__)), 'templates' )
 		);
 
-		$dir_iterator = new RecursiveDirectoryIterator($this->twig_templates_path);
-		$iterator = new RecursiveIteratorIterator(
-			$dir_iterator, RecursiveIteratorIterator::SELF_FIRST
+		$dir_iterator = new \RecursiveDirectoryIterator($this->twig_templates_path);
+		$iterator = new \RecursiveIteratorIterator(
+			$dir_iterator, \RecursiveIteratorIterator::SELF_FIRST
 		);
 
 		$this->twig_template_names = array();
@@ -101,10 +103,10 @@ class Bibcite_Renderer
 	}
 
 	/**
-	 * Render an ordered collection of CSL entries (each one presented as associative CSL array)
-	 * using a named CSL entry style and a Twig list.
+	 * Render an ordered collection of CSL entries (each one presented as a CSL JSON 
+	 * object) using a named CSL entry style and a Twig list.
 	 *
-	 * @param array $csl_entries ordered list of CSL entries (each one an associative CSL array) 
+	 * @param array $csl_entries ordered list of CSL entries (each one an a CSL JSON object) 
 	 * to be rendered
 	 * @param string $csl_style_name named CSL style with which to render each entry
 	 * @param string $twig_template_name named Twig template file with which to render the list
@@ -119,8 +121,8 @@ class Bibcite_Renderer
 	) : string {
 
 		// Render the entries with the specified CiteProc style
-		$style = Seboettg\CiteProc\StyleSheet::loadStyleSheet($csl_style_name);
-		$citeProc = new Seboettg\CiteProc\CiteProc($style);
+		$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet($csl_style_name);
+		$citeProc = new \Seboettg\CiteProc\CiteProc($style);
 		$rendered_entries = array();
 		$index = 1;
 		foreach ($csl_entries as $csl_entry) {
@@ -137,15 +139,22 @@ class Bibcite_Renderer
 					"entry" => $rendered_entry					// rendered citation as string
 				);
 			} catch (Exception $e) {
-				Bibcite_Logger::instance()->error(
-					"Exception when rendering CSL: " . $e->getMessage()
-				);
+				Logger::instance()->error("Exception when rendering CSL: " . $e->getMessage());
 			}
 		}
 
 		// Now apply the list template.
-		$loader = new Twig_Loader_Filesystem($this->twig_templates_path);
-		$twig = new Twig_Environment($loader);
-		return $twig->render("${twig_template_name}.twig", array('entries' => $rendered_entries));
+		try {
+			$loader = new \Twig_Loader_Filesystem($this->twig_templates_path);
+			$twig = new \Twig_Environment($loader);
+			return $twig->render(
+				"${twig_template_name}.twig", array('entries' => $rendered_entries)
+			);
+		} catch (Exception $e) {
+			Logger::instance()->error(
+				"Exception when rendering CSL with template: " . $e->getMessage()
+			);
+			return "";
+		}
 	}
 }
