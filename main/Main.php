@@ -28,9 +28,6 @@ use Geissler\Converter\Standard\CSL\CSL;
  */
 class Main {
 
-	// TODO: make this a setting.
-	const LIBRARY_URL = 'https://www.dropbox.com/s/m1lgya889qnz081/library.bib?dl=1';
-
 	// The ID of this plugin.
 	private $bibcite_sc;
 
@@ -138,7 +135,7 @@ class Main {
 		}
 
 		// If we're here, render the note.
-		$url = self::LIBRARY_URL;
+		$url = get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
 		$csl_library = $this->get_or_update_csl_library($url);
 		$csl_json_entry = $csl_library->get($bibcite_key);
 		$rendered_note = \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
@@ -185,7 +182,7 @@ class Main {
 			$keys_to_rendered_notes = $this->post_id_to_rendered_notes_array[$post_id];
 
 		// Get or update the library for the source URL
-		$url = self::LIBRARY_URL;
+		$url = get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
 		$csl_library = $this->get_or_update_csl_library($url);
 		
 		// Find all relevant bibcite keys and place the associated CSL JSON entries in an array.
@@ -225,7 +222,7 @@ class Main {
 	public function do_bibtex_shortcode( array $atts, string $content = null ) {
 
 		// Get or update the library for the source URL
-		$url = self::LIBRARY_URL;
+		$url = get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
 		$csl_library = $this->get_or_update_csl_library($url);
 
 		// Extract the set of requested keys.

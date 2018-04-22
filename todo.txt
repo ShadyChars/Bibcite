@@ -8,23 +8,15 @@ Setup:
 
 Settings and features:
 
-* Reset:
-	* Rename to "delete cache"
-	* Add "delete cache" hook + implementations
-	* Add "delete cache" button to settings
 * Move to CSL storage in the DB - IN PROGRESS
-* Citation styles and where to find them
-	* Citation mode: 
-		* bibliography entry style and list template - DONE
-		* entry note style and entry template - DONE
-	* Biblography mode: entry style and list template - DONE
-	* If there a bibliography available, let the user render one of the entries
 * Test and update params on all shortcodes
-* URL(s) of bibliographies
-	* Add the ability to upload files directly? Store in a separate dir and check dates/times periodically? Can probably use the same logic as for a remote file. Might be worth having multiple Bibcite_SC_Library instances w/ backed either by a URL or file, and with derived/specialised download/check cache date mechanisms.
-* Local no-download time
-* Log level
-* Show log
+* Log:
+	* Modify to rolling 24 hours
+	* Show log button
+* Admin improvements:
+	* If there a bibliography available, let the user render one of the entries
+	* Allow multiple default libraries?
+	* Test the specified library URL
 * Detect CSL or RIS input libraries
 * Add user-specified CSL style directory
 
