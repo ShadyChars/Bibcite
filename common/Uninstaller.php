@@ -38,5 +38,6 @@ class Uninstaller
         // All classes that are uninstallable declare a static uninstall() method.
         \Bibcite\Admin\Admin::uninstall();
         \Bibcite\Common\CslLibrary::uninstall();
+        \Bibcite\Common\Downloader::uninstall();
     }
 }

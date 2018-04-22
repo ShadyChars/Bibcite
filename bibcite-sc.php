@@ -47,32 +47,46 @@ define( 'BIBCITE_SC_PREFIX', 'BIBCITE_SC' );
 define( 'BIBCITE_SC_CACHE_DIRECTORY', 'cache' );
 
 /**
+ * Define a custom hook fired when the plugin is reset to a factory state.
+ */
+define( 'BIBCITE_SC_CLEAR_CACHE_ACTION', BIBCITE_SC_PREFIX . "_CLEAR_CACHE" );
+
+/**
  * The code that runs during plugin activation.
- * This action is documented in includes/class-bibcite-sc-activator.php
  */
 function activate_bibcite_sc() {
+	Bibcite\Common\Logger::instance()->info("Activating plugin...");
 	Bibcite\Common\Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/class-bibcite-sc-deactivator.php
  */
 function deactivate_bibcite_sc() {
+	Bibcite\Common\Logger::instance()->info("Dectivating plugin...");
 	Bibcite\Common\Deactivator::deactivate();
 }
 
 /**
+ * The code that runs during our custom BIBCITE_SC_CLEAR_CACHE_ACTION.
+ */
+function clear_cache_bibcite_sc() {
+	Bibcite\Common\Logger::instance()->info("Clearing cached data...");
+	Bibcite\Common\CacheClearer::clear_cache();
+}
+
+/**
  * The code that runs during plugin uninstallation.
- * This action is documented in includes/class-bibcite-sc-uninstaller.php
  */
 function uninstall_bibcite_sc() {
+	Bibcite\Common\Logger::instance()->info("Uninstalling plugin...");
 	Bibcite\Common\Uninstaller::uninstall();
 }
 
 register_activation_hook( __FILE__, 'activate_bibcite_sc' );
 register_deactivation_hook( __FILE__, 'deactivate_bibcite_sc' );
 register_uninstall_hook( __FILE__, 'uninstall_bibcite_sc' );
+add_action(BIBCITE_SC_CLEAR_CACHE_ACTION, 'clear_cache_bibcite_sc');
 
 /**
  * Begins execution of the plugin.

@@ -37,7 +37,6 @@ class CslLibrary
      */
     public function __construct($name)
     {
-
         global $wpdb;
 
         // Record the requested table name, then create a DB-friendly, prefixed version.
@@ -60,6 +59,17 @@ class CslLibrary
     }
 
     /**
+     * Clear out cached data.
+     *
+     * @return void
+     * @author Keith Houston <keith@shadycharacters.co.uk>
+     * @since 1.0.0
+     */
+    public static function clear_cache() {
+        self::uninstall();
+    }
+
+    /**
      * Drop all tables created by this class.
      *
      * @return void
@@ -69,16 +79,15 @@ class CslLibrary
     public static function uninstall() {
 
         global $wpdb;
-        $table_prefix = BIBCITE_SC_PREFIX;
-        $show_tables_sql = "SHOW TABLES LIKE '%table_prefix%'";
-        $show_table_results = $wpdb->query($show_tables_sql);
-        
-        var_dump($show_table_results);
 
-        foreach ($table_names as $table_name) {
-            $sql = "DROP TABLE IF EXISTS $table_name";
-            $wpdb->query($sql);
-        }
+        $table_prefix = $wpdb->prefix . BIBCITE_SC_PREFIX . "_";
+        $tables = $wpdb->get_results("SHOW TABLES");
+        foreach ($tables as $table)
+            foreach ($table as $table_name)
+                if (strncasecmp($table_name, $table_prefix, strlen($table_prefix)) == 0) {
+                    \Bibcite\Common\Logger::instance()->debug("Dropping table: $table_name...");
+                    $wpdb->query("DROP TABLE $table_name");
+                }
     }
 
     /**

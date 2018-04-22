@@ -75,7 +75,10 @@ class Admin
 	private const BIBSHOW_SECTION = BIBCITE_SC_PREFIX . "_BIBSHOW_SECTION";
 	
 	// Identifies settings related to [bibtex] shortcodes.
-	private const BIBTEX_SECTION = BIBCITE_SC_PREFIX . "_BIBTEX_SECTION";
+    private const BIBTEX_SECTION = BIBCITE_SC_PREFIX . "_BIBTEX_SECTION";
+    
+    // Identifies our custom "clear cache" action.
+    private const CLEAR_CACHE_ACTION = BIBCITE_SC_PREFIX . "_CLEAR_CACHE";
 	
 	// The ID of this plugin.
 	private $bibcite_sc;
@@ -97,24 +100,19 @@ class Admin
         $this->bibcite_sc = $bibcite_sc;
         $this->version = $version;
 
-    }
-
-    /**
-     * Called in response to the 'admin_menu' hook. Used to create a menu for this plugin.
-     *
-     * @return void
-     * @author Keith Houston <keith@shadycharacters.co.uk>
-     * @since 1.0.0
-     */
-    public function menu()
-    {
-        add_options_page(
-            'Bibcite settings', // Browser page title
-            'Bibcite', // Menu title
-            'manage_options', // required capability
-            self::MENU_SLUG, // menu slug
-            array($this, 'do_options_page') // method to handle the menu
+        // Handle custom POST messages by firing our custom 'clear_cache' hook.
+        add_action( 
+            "admin_post_" . self::CLEAR_CACHE_ACTION,
+            function () { 
+                \Bibcite\Common\Logger::instance()->debug(
+                    "Received custom " . self::CLEAR_CACHE_ACTION . " action"
+                );
+                do_action(BIBCITE_SC_CLEAR_CACHE_ACTION); 
+                wp_redirect(admin_url('options-general.php?page=' . self::MENU_SLUG));
+                die(__FILE__);
+            }
         );
+        
     }
 
     /**
@@ -137,6 +135,24 @@ class Admin
      */
     public static function uninstall() {
         self::delete_options();
+    }
+
+        /**
+     * Called in response to the 'admin_menu' hook. Used to create a menu for this plugin.
+     *
+     * @return void
+     * @author Keith Houston <keith@shadycharacters.co.uk>
+     * @since 1.0.0
+     */
+    public function menu()
+    {
+        add_options_page(
+            'Bibcite settings', // Browser page title
+            'Bibcite', // Menu title
+            'manage_options', // required capability
+            self::MENU_SLUG, // menu slug
+            array($this, 'do_options_page') // method to handle the menu
+        );
     }
 
     /**
@@ -206,7 +222,7 @@ class Admin
 
         add_settings_field(
             self::BIBTEX_STYLE_NAME, // field ID
-            'Bibliography citation style', // field title
+            'Bibliography entry style', // field title
             array($this, 'do_bibtex_style_chooser'), // field callback
             self::MENU_SLUG, // parent menu slug
             self::BIBTEX_SECTION// parent section ID
@@ -229,7 +245,10 @@ class Admin
      * @since 1.0.0
      */
     public function do_options_page()
-    {?>
+    {
+        $redirect = urlencode( remove_query_arg( 'msg', $_SERVER['REQUEST_URI'] ) );
+
+        ?>
     <div class="wrap">
         <h2>Bibcite settings</h2>
         <form action="options.php" method="POST">
@@ -253,6 +272,18 @@ class Admin
             <?php settings_fields(self::SETTINGS_GROUP);?>
             <?php do_settings_sections(self::MENU_SLUG);?>
             <?php submit_button();?>
+        </form>
+
+        <form 
+            action="<?php echo admin_url( 'admin-post.php' ); ?>" 
+            method="post">
+            <h2>Clear cached data</h2>
+            Delete all cached files and database entries.
+            <input 
+                type="hidden" 
+                name="action" 
+                value="<?php echo esc_attr(self::CLEAR_CACHE_ACTION); ?>">
+            <?php submit_button('Clear cache'); ?>
         </form>
     </div>
     <?php
