@@ -98,6 +98,70 @@ class Main {
 	}
 
 	/**
+	 * Handle a standalone [bibtex] shortcode. This renders a bibliography at the shortcode 
+	 * location, populated only with the specified references.
+	 *
+	 * @param array $atts shortcode attributes
+	 * @param string $content shortcode content. Ignored.
+	 * @return string|null
+	 */
+	public function do_bibtex_shortcode( array $atts, string $content = null ) {
+
+		// Parse attributes
+		// TODO: document supported attributes
+		// TODO: factor into a method for reuse here and by bibshow.
+		// TODO: emit warning messages in the log if these aren't valid, and fall back to defaults
+		$url = $atts["file"] ?? get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
+		$keys = $atts["key"] ?? "";
+		$style = $atts["style"] ?? get_option(\Bibcite\Admin\Admin::BIBTEX_STYLE_NAME);
+		$template = $atts["template"] ?? get_option(\Bibcite\Admin\Admin::BIBTEX_TEMPLATE_NAME);
+		$sort = $atts["sort"] ?? null;
+		$order = $atts["order"] ?? "asc";
+
+		// Get or update the library for the source URL
+		$csl_library = $this->get_or_update_csl_library($url);
+
+		// Get the set of entries to be rendered as CSL JSON objects.
+		$csl_entries = array();
+		foreach (explode(",", $keys) as $csl_key) {
+			$csl_json_object = $csl_library->get($csl_key);
+			if (!$csl_json_object) {
+				\Bibcite\Common\Logger::instance()->warn(
+					"Could not find CSL library entry: " . $csl_key
+				);
+				continue;
+			}
+
+			// Record the entry.
+			\Bibcite\Common\Logger::instance()->debug("Found CSL library entry: " . $csl_key);
+			$csl_entries[] = $csl_json_object;
+		}
+
+		// Do we need to sort the entries?
+		if ($sort) {
+			usort(
+				$csl_entries,
+				function($a, $b) use ($sort, $order) {
+					try {
+						// Run a string comparison on the specified field and invert if we want
+						// the sort order to be descending.
+						$cmp = strcmp(var_export($a->{$sort}, true), var_export($b->{$sort}, true));
+						return ($order == "asc") ? $cmp : -$cmp;
+					}
+					catch (Exception $e) {
+						return 0;
+					}
+				}
+			);
+		}
+
+		// Render and return the bibliography.
+		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
+			$csl_entries, $style, $template
+		);
+	}
+
+	/**
 	  * Handle a [bibcite] shortcode. When used inside a [bibshow]...[/bibshow] shortcode, this 
 	 * inserts a citation or a note to a specified citation or citations.
 	 *
@@ -209,71 +273,6 @@ class Main {
 		);
 
 		return $processed_content . $bibliography;
-	}
-
-	/**
-	 * Handle a standalone [bibtex] shortcode. This renders a bibliography at the shortcode 
-	 * location, populated only with the reference keys.
-	 *
-	 * @param array $atts shortcode attributes. Only "key=<key1>[,<key2>[,...]]" is supported.
-	 * @param string $content shortcode content. Ignored.
-	 * @return string|null
-	 */
-	public function do_bibtex_shortcode( array $atts, string $content = null ) {
-
-		// Get or update the library for the source URL
-		$url = get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
-		$csl_library = $this->get_or_update_csl_library($url);
-
-		// Extract the set of requested keys.
-		// TK: allow more sophisticated key queries
-		$keys = null;
-		try {
-			$keys = $atts["key"];
-			\Bibcite\Common\Logger::instance()->debug(
-				"Encountered bibtex shortcode with keys: " . $keys
-			);
-		}
-		catch (Exception $e) {
-			\Bibcite\Common\Logger::instance()->error(
-				"Failed to get keys from [bibtex] shortcode attributes: " . $e->getMessage() . "."
-			);
-			return null;
-		}
-
-		// Get the set of entries to be rendered and convert to CSL JSON.		
-		$csl_entries = array();
-		foreach (explode(",", $keys) as $bibtex_key ) {
-			$csl_json_object = $csl_library->get($bibtex_key);
-			if (!$csl_json_object) {
-				\Bibcite\Common\Logger::instance()->warn(
-					"Could not find Bibtex library entry: " . $bibtex_key
-				);
-				continue;
-			}
-
-			// Record the entry.
-			\Bibcite\Common\Logger::instance()->debug("Found Bibtex library entry: " . $bibtex_key);
-			$csl_entries[] = $csl_json_object;
-		}
-
-		// Do we need to sort the entries?
-		/*$sort = isset($atts['sort']) ? $atts['sort'] : false;
-		if ($sort)
-		{
-			switch ($sort)
-			{
-				case 'year':
-					array_
-			}
-		}*/
-
-		// Render and return the bibliography.
-		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
-			$csl_entries, 
-			get_option(\Bibcite\Admin\Admin::BIBTEX_STYLE_NAME),
-			get_option(\Bibcite\Admin\Admin::BIBTEX_TEMPLATE_NAME)
-		);
 	}
 
 	/**

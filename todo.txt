@@ -8,8 +8,10 @@ Setup:
 
 Settings and features:
 
-* Move to CSL storage in the DB - IN PROGRESS
-* Test and update params on all shortcodes
+* Test and update params on all shortcodes - IN PROGRESS
+	* document supported attributes
+	* factor into a method for use by bibtex and bibshow.
+	* emit warning messages in the log if these aren't valid, and fall back to defaults
 * Log:
 	* Modify to rolling 24 hours
 	* Show log button

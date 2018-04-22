@@ -132,8 +132,9 @@ class CslLibrary
         );
         
         if ($row) {
+            // Deserialize to PHP object
             $csl_json_string = $row->{self::CSL_VALUE};
-            return json_encode($csl_json_string);
+            return json_decode($csl_json_string);
         } else {
             return false;
         }
