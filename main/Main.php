@@ -120,7 +120,7 @@ class Main {
 		);
 
 		// Parse attributes
-		$attributes = self::parse_shortcode_attributes($atts);
+		$attributes = self::parse_shortcode_attributes("bibtex", $atts);
 
 		// Get or update the library for the source URL
 		$csl_library = self::get_or_update_csl_library($attributes[self::URL_ATTRIBUTE]);
@@ -198,7 +198,7 @@ class Main {
 		}
 
 		// Parse attributes
-		$attributes = self::parse_shortcode_attributes($atts);
+		$attributes = self::parse_shortcode_attributes("bibcite", $atts);
 
 		// $keys_for_post contains only unique keys within this post in the order that we encounter
 		// them. Separately, build a list of keys *for this shortcode only* to be rendered and 
@@ -233,8 +233,8 @@ class Main {
 		// Done. Render the note(s).
 		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
 			$indexed_csl_values_to_render, 
-			get_option(\Bibcite\Admin\Admin::BIBCITE_STYLE_NAME),
-			get_option(\Bibcite\Admin\Admin::BIBCITE_TEMPLATE_NAME)
+			$attributes[self::STYLE_ATTRIBUTE],
+			$attributes[self::TEMPLATE_ATTRIBUTE]
 		);
 	}
 
@@ -258,9 +258,6 @@ class Main {
 		// contents of this [bibshow] bibliography.
 		$processed_content = do_shortcode($content);
 
-		// Find and render the Bibtex entries for each [bibcite] entry in the post.
-		////////////////////////////////////////////////////////////////////////////////////////////
-
 		// Work out what post we're in.
 		global $post;
 		$post_id = $post->ID;
@@ -269,27 +266,27 @@ class Main {
 		$keys_for_post;
 		if (!array_key_exists ($post_id, $this->post_id_to_bibshow_keys))
 			return $content;
-		else
-			$keys_for_post = $this->post_id_to_bibshow_keys[$post_id];
+
+		// Parse attributes
+		$attributes = self::parse_shortcode_attributes("bibshow", $atts);
 
 		// Get or update the library for the source URL
-		$url = get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
+		$url = $attributes[self::URL_ATTRIBUTE];
 		$csl_library = self::get_or_update_csl_library($url);
 		
 		// Find all relevant bibcite keys and place the associated CSL JSON entries in an array.
 		// This will preserve the ordering and indexing of the values to be rendered.
+		$keys_for_post = $this->post_id_to_bibshow_keys[$post_id];
 		$indices_to_csl_json_objects = array_map(			
-			function($key) use ($csl_library) {
-				return $csl_library->get($key);
-			},
+			function($key) use ($csl_library) { return $csl_library->get($key); },
 			$keys_for_post
 		);
 
 		// Render and return the bibliography.
 		$bibliography = \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
 			$indices_to_csl_json_objects,
-			get_option(\Bibcite\Admin\Admin::BIBSHOW_STYLE_NAME),
-			get_option(\Bibcite\Admin\Admin::BIBSHOW_TEMPLATE_NAME)
+			$attributes[self::STYLE_ATTRIBUTE],
+			$attributes[self::TEMPLATE_ATTRIBUTE]
 		);
 
 		return $processed_content . $bibliography;
@@ -298,27 +295,70 @@ class Main {
 	/**
 	 * Parse shortcode attributes into a well-defined array of settings.
 	 *
-	 * @param array $atts shortcode attributes
+	 * @param string $shortcode shortcode
+	 * @param $atts shortcode attributes. If not specified, or not an array, all returned values
+	 * are defaults.
 	 * @return array an array of attributes or default values, as appropriate.
 	 * @author Keith Houston <keith@shadycharacters.co.uk>
 	 * @since 1.0.0
 	 */
-	private static function parse_shortcode_attributes(array $atts) : array {
+	private static function parse_shortcode_attributes(string $shortcode, $atts) : array {
 
-		return array(
-			self::URL_ATTRIBUTE => 
-				$atts["file"] ?? get_option(\Bibcite\Admin\Admin::LIBRARY_URL),
-			self::KEYS_ATTRIBUTE => 
-				$atts["key"] ?? "",
-			self::STYLE_ATTRIBUTE => 
-				$atts["style"] ?? get_option(\Bibcite\Admin\Admin::BIBTEX_STYLE_NAME),
-			self::TEMPLATE_ATTRIBUTE => 
-				$atts["template"] ?? get_option(\Bibcite\Admin\Admin::BIBTEX_TEMPLATE_NAME),
-			self::SORT_ATTRIBUTE => 
-				$atts["sort"] ?? null,
-			self::ORDER_ATTRIBUTE => 
-				$atts["order"] ?? "asc"
-		);
+		if (!is_array($atts))
+			$atts = array();
+
+		$attributes = array();
+
+		// Use the specified file/URL or our default
+		$attributes[self::URL_ATTRIBUTE] = 
+			$atts["file"] ?? get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
+
+		// Use the specified keys, or the empty string if none were specified.
+		$attributes[self::KEYS_ATTRIBUTE] = $atts["key"] ?? "";
+		
+		// Use the specified style attribute, or choose the appropriate default.		
+		$attributes[self::STYLE_ATTRIBUTE] = $atts["style"] ?? null;
+		if (!isset($attributes[self::STYLE_ATTRIBUTE])) {
+			switch ($shortcode) {
+				case "bibcite":
+					$attributes[self::STYLE_ATTRIBUTE] = 
+						get_option(\Bibcite\Admin\Admin::BIBCITE_STYLE_NAME);
+					break;
+				case "bibshow":
+					$attributes[self::STYLE_ATTRIBUTE] = 
+						get_option(\Bibcite\Admin\Admin::BIBSHOW_STYLE_NAME);
+					break;
+				case "bibtex":
+					$attributes[self::STYLE_ATTRIBUTE] = 
+						get_option(\Bibcite\Admin\Admin::BIBTEX_STYLE_NAME);
+					break;
+			}
+		}
+		
+		// Use the specified template attribute, or choose the appropriate default
+		$attributes[self::TEMPLATE_ATTRIBUTE] = $atts["template"] ?? null;
+		if (!isset($attributes[self::TEMPLATE_ATTRIBUTE])) {
+			switch ($shortcode) {
+				case "bibcite":
+					$attributes[self::TEMPLATE_ATTRIBUTE] = 
+						get_option(\Bibcite\Admin\Admin::BIBCITE_TEMPLATE_NAME);
+					break;
+				case "bibshow":
+					$attributes[self::TEMPLATE_ATTRIBUTE] = 
+						get_option(\Bibcite\Admin\Admin::BIBSHOW_TEMPLATE_NAME);
+					break;
+				case "bibtex":
+					$attributes[self::TEMPLATE_ATTRIBUTE] = 
+						get_option(\Bibcite\Admin\Admin::BIBTEX_TEMPLATE_NAME);
+					break;
+			}
+		}
+
+		// CSL sort property and order.
+		$attributes[self::SORT_ATTRIBUTE] = $atts["sort"] ?? null;
+		$attributes[self::ORDER_ATTRIBUTE] = $atts["order"] ?? "asc";
+
+		return $attributes;
 	}
 
 	/**
@@ -348,7 +388,7 @@ class Main {
 		// the local copy, update our library.
 		if (!\Bibcite\Common\Downloader::save_url_to_file($url, $filename)) {
 			\Bibcite\Common\Logger::instance()->warn(
-				"Failed to get up-to-date Bibtex library from URL (${url}). Using cached entries."
+				"No new Bibtex library retrieved from URL (${url}). Using cached database entries."
 			);
 			return $csl_library;
 		}
