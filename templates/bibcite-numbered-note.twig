@@ -1,3 +1,3 @@
 {% for entry in entries %}
-<a class="papercite_bibcite" id="bibcite_{{ entry.index }}" href="#bibshow_{{ entry.index }}" title="{{ entry | striptags }}">{{ entry.index }}</a>
+<a class="bibcite" id="bibcite_{{ entry.key }}" href="#bibshow_{{ entry.key }}" title="{{ entry.entry | striptags }}">{{ entry.index + 1 }}</a>
 {% endfor %}

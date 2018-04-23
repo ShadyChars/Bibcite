@@ -28,14 +28,22 @@ use Geissler\Converter\Standard\CSL\CSL;
  */
 class Main {
 
+	// Names of parsed shortcode attributes returned by parse_shortcode_attributes().
+	private const URL_ATTRIBUTE = BIBCITE_SC_PREFIX . "_URL";
+	private const KEYS_ATTRIBUTE = BIBCITE_SC_PREFIX . "_KEYS";
+	private const STYLE_ATTRIBUTE = BIBCITE_SC_PREFIX . "_STYLE";
+	private const TEMPLATE_ATTRIBUTE = BIBCITE_SC_PREFIX . "_TEMPLATE";
+	private const SORT_ATTRIBUTE = BIBCITE_SC_PREFIX . "_SORT";
+	private const ORDER_ATTRIBUTE = BIBCITE_SC_PREFIX . "_ORDER";
+
 	// The ID of this plugin.
 	private $bibcite_sc;
 
 	// The version of this plugin.
 	private $version;
 
-	// A [post ID -> [key => rendered entry]] array of arrays.
-	private $post_id_to_rendered_notes_array;
+	// A [post ID -> [key]] array of arrays. Lists the set of unique keys per post.
+	private $post_id_to_bibshow_keys;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -48,7 +56,7 @@ class Main {
 
 		$this->bibcite_sc = $bibcite_sc;
 		$this->version = $version;
-		$this->post_id_to_rendered_notes_array = array();
+		$this->post_id_to_bibshow_keys = array();
 	}
 
 	/**
@@ -107,48 +115,48 @@ class Main {
 	 */
 	public function do_bibtex_shortcode( array $atts, string $content = null ) {
 
+		\Bibcite\Common\Logger::instance()->debug(
+			"Encountered bibtex shortcode with attributes: " . var_export($atts, true)
+		);
+
 		// Parse attributes
-		// TODO: document supported attributes
-		// TODO: factor into a method for reuse here and by bibshow.
-		// TODO: emit warning messages in the log if these aren't valid, and fall back to defaults
-		$url = $atts["file"] ?? get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
-		$keys = $atts["key"] ?? "";
-		$style = $atts["style"] ?? get_option(\Bibcite\Admin\Admin::BIBTEX_STYLE_NAME);
-		$template = $atts["template"] ?? get_option(\Bibcite\Admin\Admin::BIBTEX_TEMPLATE_NAME);
-		$sort = $atts["sort"] ?? null;
-		$order = $atts["order"] ?? "asc";
+		$attributes = self::parse_shortcode_attributes($atts);
 
 		// Get or update the library for the source URL
-		$csl_library = $this->get_or_update_csl_library($url);
+		$csl_library = self::get_or_update_csl_library($attributes[self::URL_ATTRIBUTE]);
 
-		// Get the set of entries to be rendered as CSL JSON objects.
+		// Get the set of CSL JSON objects to be rendered.
 		$csl_entries = array();
-		foreach (explode(",", $keys) as $csl_key) {
+		foreach (explode(",", $attributes[self::KEYS_ATTRIBUTE]) as $csl_key) {
 			$csl_json_object = $csl_library->get($csl_key);
-			if (!$csl_json_object) {
+			if ($csl_json_object) {
+				\Bibcite\Common\Logger::instance()->debug("Found CSL library entry: " . $csl_key);
+				$csl_entries[] = $csl_json_object;
+			}
+			else
 				\Bibcite\Common\Logger::instance()->warn(
 					"Could not find CSL library entry: " . $csl_key
 				);
-				continue;
-			}
-
-			// Record the entry.
-			\Bibcite\Common\Logger::instance()->debug("Found CSL library entry: " . $csl_key);
-			$csl_entries[] = $csl_json_object;
 		}
 
 		// Do we need to sort the entries?
-		if ($sort) {
+		if ($attributes[self::SORT_ATTRIBUTE]) {
+			$sort = $attributes[self::SORT_ATTRIBUTE];
+			$order = $attributes[self::ORDER_ATTRIBUTE];
+
+			// Run a string comparison on the specified field. Invert the comparison score if we 
+			// want the sort order to be descending.
 			usort(
 				$csl_entries,
 				function($a, $b) use ($sort, $order) {
-					try {
-						// Run a string comparison on the specified field and invert if we want
-						// the sort order to be descending.
+					try {						
 						$cmp = strcmp(var_export($a->{$sort}, true), var_export($b->{$sort}, true));
 						return ($order == "asc") ? $cmp : -$cmp;
 					}
 					catch (Exception $e) {
+						\Bibcite\Common\Logger::instance()->warn(
+							"Could not sort on CSL attribute '$sort': " . $e->getMessage()
+						);
 						return 0;
 					}
 				}
@@ -157,7 +165,7 @@ class Main {
 
 		// Render and return the bibliography.
 		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
-			$csl_entries, $style, $template
+			$csl_entries, $attributes[self::STYLE_ATTRIBUTE], $attributes[self::TEMPLATE_ATTRIBUTE]
 		);
 	}
 
@@ -174,43 +182,60 @@ class Main {
 	public function do_bibcite_shortcode( array $atts, string $content = null ) : string {
 
 		\Bibcite\Common\Logger::instance()->debug(
-			"Encountered bibcite shortcode with attributes: " . implode(", ", $atts)
+			"Encountered bibcite shortcode with attributes: " . var_export($atts, true)
 		);
 
 		// Work out what post we're in.
 		global $post;
 		$post_id = $post->ID;
 		
-		// Do we already have an array of [bibcite] entries for this post? If not, create one.
-		if ( !array_key_exists ( $post_id, $this->post_id_to_rendered_notes_array ) ) {
-			$this->post_id_to_rendered_notes_array[$post_id] = array();
+		// Do we already have an array of known keys for this post? If not, create one.
+		if (!isset($this->post_id_to_bibshow_keys[$post_id])) {
+			$this->post_id_to_bibshow_keys[$post_id] = array();
 			\Bibcite\Common\Logger::instance()->debug(
-				"Creating new array of bibcite keys for post ${post_id}"
+				"Creating new array of [key => rendered entry] for post ${post_id}"
 			);
 		}
 
-		$keys_to_rendered_notes = &$this->post_id_to_rendered_notes_array[$post_id];
+		// Parse attributes
+		$attributes = self::parse_shortcode_attributes($atts);
 
-		// Extract the key or keys in this [bibcite key=...] shortcode. If we've already seen this 
-		// entry, reuse it. This will preserve its position in the [key => entry array]
-		$bibcite_key = $atts["key"];
-		if ( array_key_exists( $bibcite_key, $keys_to_rendered_notes ) ) {
-			return $keys_to_rendered_notes[$bibcite_key];
+		// $keys_for_post contains only unique keys within this post in the order that we encounter
+		// them. Separately, build a list of keys *for this shortcode only* to be rendered and 
+		// emitted at the end of this method.
+		$keys_for_post = &$this->post_id_to_bibshow_keys[$post_id];
+		$keys_for_shortcode = explode(",", $attributes[self::KEYS_ATTRIBUTE]);
+
+		// Do we need to do anything?
+		if (count($keys_for_shortcode) <= 0)
+			return "";
+
+		// If we're here, we need to render our notes. First, get the library.
+		$url = $attributes[self::URL_ATTRIBUTE];
+		$csl_library = self::get_or_update_csl_library($url);
+
+		// For each key in this shortcode...		
+		$indexed_csl_values_to_render = array();
+		foreach ($keys_for_shortcode as $csl_key) {
+
+			// If this key doesn't already exist in the list of keys to be rendered in the 
+			// bibliography, add it now.
+			if (!in_array($csl_key, $keys_for_post))
+				$keys_for_post[] = $csl_key;
+
+			// Add this entry to the set to be rendered. Use the entry's position in the 
+			// bibliography as its index.
+			$index = array_search($csl_key, $keys_for_post);
+			$csl_json_entry = $csl_library->get($csl_key);
+			$indexed_csl_values_to_render[$index] = $csl_json_entry;
 		}
 
-		// If we're here, render the note.
-		$url = get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
-		$csl_library = $this->get_or_update_csl_library($url);
-		$csl_json_entry = $csl_library->get($bibcite_key);
-		$rendered_note = \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
-			array($csl_json_entry), 
+		// Done. Render the note(s).
+		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
+			$indexed_csl_values_to_render, 
 			get_option(\Bibcite\Admin\Admin::BIBCITE_STYLE_NAME),
 			get_option(\Bibcite\Admin\Admin::BIBCITE_TEMPLATE_NAME)
 		);
-		
-		// Save the rendered note in the list and return it;
-		$keys_to_rendered_notes[$bibcite_key] = $rendered_note;
-		return $keys_to_rendered_notes[$bibcite_key];
 	}
 
 	/**
@@ -224,7 +249,9 @@ class Main {
 	 */
 	public function do_bibshow_shortcode( $atts, string $content = null ) {
 
-		\Bibcite\Common\Logger::instance()->debug("Encountered bibshow shortcode");
+		\Bibcite\Common\Logger::instance()->debug(
+			"Encountered bibshow shortcode with attributes: " . var_export($atts, true)
+		);
 
 		// Process the content of this shortcode, in case we encounter any other shortcodes - 
 		// in particular, we need to build a list of any [bibcite] shortcodes that define the 
@@ -239,40 +266,59 @@ class Main {
 		$post_id = $post->ID;
 		
 		// Do we have an array of [bibcite] entries for this post? If not, nothing to do.
-		$keys_to_rendered_notes;
-		if (!array_key_exists ($post_id, $this->post_id_to_rendered_notes_array))
+		$keys_for_post;
+		if (!array_key_exists ($post_id, $this->post_id_to_bibshow_keys))
 			return $content;
 		else
-			$keys_to_rendered_notes = $this->post_id_to_rendered_notes_array[$post_id];
+			$keys_for_post = $this->post_id_to_bibshow_keys[$post_id];
 
 		// Get or update the library for the source URL
 		$url = get_option(\Bibcite\Admin\Admin::LIBRARY_URL);
-		$csl_library = $this->get_or_update_csl_library($url);
+		$csl_library = self::get_or_update_csl_library($url);
 		
 		// Find all relevant bibcite keys and place the associated CSL JSON entries in an array.
-		$csl_entries = array();
-		foreach ($keys_to_rendered_notes as $bibcite_key => $rendered_entry) {
-			$csl_json_object = $csl_library->get($bibcite_key);
-			if ($csl_json_object) {
-				$csl_entries[] = $csl_json_object;
-				\Bibcite\Common\Logger::instance()->debug(
-					"Found CSL library entry: " . $bibcite_key
-				);
-			} else {
-				\Bibcite\Common\Logger::instance()->warn(
-					"Could not find CSL library entry: " . $bibcite_key
-				);
-			}
-		}
+		// This will preserve the ordering and indexing of the values to be rendered.
+		$indices_to_csl_json_objects = array_map(			
+			function($key) use ($csl_library) {
+				return $csl_library->get($key);
+			},
+			$keys_for_post
+		);
 
 		// Render and return the bibliography.
 		$bibliography = \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
-			$csl_entries, 
+			$indices_to_csl_json_objects,
 			get_option(\Bibcite\Admin\Admin::BIBSHOW_STYLE_NAME),
 			get_option(\Bibcite\Admin\Admin::BIBSHOW_TEMPLATE_NAME)
 		);
 
 		return $processed_content . $bibliography;
+	}
+
+	/**
+	 * Parse shortcode attributes into a well-defined array of settings.
+	 *
+	 * @param array $atts shortcode attributes
+	 * @return array an array of attributes or default values, as appropriate.
+	 * @author Keith Houston <keith@shadycharacters.co.uk>
+	 * @since 1.0.0
+	 */
+	private static function parse_shortcode_attributes(array $atts) : array {
+
+		return array(
+			self::URL_ATTRIBUTE => 
+				$atts["file"] ?? get_option(\Bibcite\Admin\Admin::LIBRARY_URL),
+			self::KEYS_ATTRIBUTE => 
+				$atts["key"] ?? "",
+			self::STYLE_ATTRIBUTE => 
+				$atts["style"] ?? get_option(\Bibcite\Admin\Admin::BIBTEX_STYLE_NAME),
+			self::TEMPLATE_ATTRIBUTE => 
+				$atts["template"] ?? get_option(\Bibcite\Admin\Admin::BIBTEX_TEMPLATE_NAME),
+			self::SORT_ATTRIBUTE => 
+				$atts["sort"] ?? null,
+			self::ORDER_ATTRIBUTE => 
+				$atts["order"] ?? "asc"
+		);
 	}
 
 	/**
@@ -282,7 +328,7 @@ class Main {
 	 * @param string $url URL of a Bibtex library to be fetched.
 	 * @return \Bibcite\Common\CslLibrary a \Bibcite\Common\CslLibrary containing CSL JSON entries
 	 */
-	private function get_or_update_csl_library(string $url) : \Bibcite\Common\CslLibrary {
+	private static function get_or_update_csl_library(string $url) : \Bibcite\Common\CslLibrary {
 		
 		// Work out the target local filename		
 		$slugify = new \Cocur\Slugify\Slugify();

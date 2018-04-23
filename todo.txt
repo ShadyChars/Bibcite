@@ -8,13 +8,16 @@ Setup:
 
 Settings and features:
 
-* Test and update params on all shortcodes - IN PROGRESS
-	* document supported attributes
+* Test and update params on all shortcodes - IN PROGRESS	
 	* factor into a method for use by bibtex and bibshow.
 	* emit warning messages in the log if these aren't valid, and fall back to defaults
+	* document supported attributes
+* Fix bibcite + bibshow behaviour
+	* Work out how to handle references
+	* Document
 * Log:
 	* Modify to rolling 24 hours
-	* Show log button
+	* "Show log" button
 * Admin improvements:
 	* If there a bibliography available, let the user render one of the entries
 	* Allow multiple default libraries?

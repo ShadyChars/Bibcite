@@ -107,7 +107,8 @@ class CslRenderer
 	 * object) using a named CSL entry style and a Twig list.
 	 *
 	 * @param array $csl_entries ordered list of CSL entries (each one an a CSL JSON object) 
-	 * to be rendered
+	 * to be rendered. The numeric index of each entry is used as the index of the rendered item
+	 * when passed to the template engine.
 	 * @param string $csl_style_name named CSL style with which to render each entry
 	 * @param string $twig_template_name named Twig template file with which to render the list
 	 * @return string rendered list
@@ -124,17 +125,20 @@ class CslRenderer
 		$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet($csl_style_name);
 		$citeProc = new \Seboettg\CiteProc\CiteProc($style);
 		$rendered_entries = array();
-		$index = 1;
-		foreach ($csl_entries as $csl_entry) {
+		foreach ($csl_entries as $index => $csl_entry) {			
 			try {
 				// Render the citation. CiteProc expects an array of CSL JSON objects, but we're 
 				// rendering each one individually.
-				$rendered_entry = $citeProc->render(array($csl_entry), "citation");
+				$key = empty($csl_entry) ? "unknown_key" : $csl_entry->{'citation-label'};
+				$rendered_entry = 
+					empty($csl_entry) ? 
+						"<span style='color:gray'>Unknown entry</span>" : 
+						$citeProc->render(array($csl_entry), "citation");
 
 				// Save the rendered entry as part of an array.
 				$rendered_entries[] = array(
-					"index" => $index++,						// 1-based indexing
-					"key" => $csl_entry->{'citation-label'},	// citation key string
+					"index" => $index,							// integer index
+					"key" => $key,								// citation key string
 					"csl" => $csl_entry,						// native CSL JSON object
 					"entry" => $rendered_entry					// rendered citation as string
 				);

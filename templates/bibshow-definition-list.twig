@@ -1,6 +1,6 @@
-<dl class="papercite_bibliography">
+<dl class="bibshow">
 {% for entry in entries %}
-	<dt id="paperkey_{{ entry.index }}@" class="papercite_entry">{{ entry.index }}.</dt>
-	<dd>{{ entry.entry | raw }} <a href="#paperref_{{ entry.key }}" class="backlink" title="Jump back to reference {{ entry.key }} in the text.">&#8617;</a></dd>
+	<dt id="bibshow_{{ entry.key }}">{{ entry.index + 1 }}.</dt>
+	<dd>{{ entry.entry | raw }} <a href="#bibcite_{{ entry.key }}" class="backlink" title="Jump back to reference {{ entry.key }} in the text.">&#8617;</a></dd>
 {% endfor %}
 </dl>
