@@ -46,20 +46,17 @@ class Downloader
         // Get the last known ETag for this file, if any
         $etag_transient_name = $transient_prefix . "last-etag";
         $last_etag = get_transient($etag_transient_name);
-        if ($last_etag != false) {
-            Logger::instance()->info("Last URL ETag: " . $last_etag);
-        }
+        Logger::instance()->info("Last URL ETag: " . var_export($last_etag, true));
 
         // Get the last known download time for this file, if any
         $last_downloaded_time_transient_name = $transient_prefix . "last-downloaded-time";
         $last_downloaded_time_string = get_transient($last_downloaded_time_transient_name);
         $last_downloaded_time = null;
-        if ($last_downloaded_time_string !== false) {
+        Logger::instance()->info(
+            "URL last downloaded: " . var_export(date(DATE_RFC850, $last_downloaded_time), true)
+        );
+        if ($last_downloaded_time_string !== false)
             $last_downloaded_time = intval($last_downloaded_time_string);
-            Logger::instance()->info(
-                "URL last downloaded: " . date(DATE_RFC850, $last_downloaded_time)
-            );
-        }
 
         // If we know when we last downloaded this file, we may be able to skip a repeated download.
         if (isset($last_downloaded_time)) {
@@ -191,11 +188,29 @@ class Downloader
      * @since 1.0.0
      */
     public static function uninstall() {
+    
+        $transient_prefix = esc_sql(self::TRANSIENT_PREFIX);
+        \Bibcite\Common\Logger::instance()->debug(
+            "Dropping options with names like: '%$transient_prefix%'..."
+        );
         
-        $transient_prefix = self::TRANSIENT_PREFIX;
-        $sql = "DELETE FROM wp_option` WHERE option_name LIKE '%$transient_prefix%'";
-
+        // Transient deletion logic from https://css-tricks.com/the-deal-with-wordpress-transients/.
         global $wpdb;
-        $wpdb->query($sql);
+        $options = $wpdb->options;
+        $t = esc_sql("_transient_timeout_$transient_prefix%");
+        $sql = $wpdb->prepare("SELECT option_name FROM $options WHERE option_name LIKE '%s'", $t);
+        $transients = $wpdb->get_col($sql);
+      
+        // For each transient...
+        foreach ($transients as $transient) {
+
+            // Strip away the WordPress prefix in order to arrive at the transient key, then 
+            // delete via the API.
+            $key = str_replace( '_transient_timeout_', '', $transient );
+            delete_transient($key);      
+        }
+        
+        // But guess what?  Sometimes transients are not in the DB, so we have to do this too:
+        wp_cache_flush();
     }
 }

@@ -8,22 +8,16 @@ Setup:
 
 Settings and features:
 
-* Test and update params on all shortcodes - IN PROGRESS	
-	* factor into a method for use by bibtex and bibshow.
-	* emit warning messages in the log if these aren't valid, and fall back to defaults
-	* document supported attributes
-* Fix bibcite + bibshow behaviour
-	* Work out how to handle references
-	* Document
-* Log:
-	* Modify to rolling 24 hours
-	* "Show log" button
 * Admin improvements:
+	* Modify descriptions to say that they're default values for shortcodes
 	* If there a bibliography available, let the user render one of the entries
-	* Allow multiple default libraries?
 	* Test the specified library URL
-* Detect CSL or RIS input libraries
 * Add user-specified CSL style directory
+* Update readme!
+	* How to build
+	* How to deploy
+	* Shortcodes and attributes
+	* CSL styles and templating
 
 OrkneyDullard/converter
 

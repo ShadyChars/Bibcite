@@ -265,8 +265,6 @@ class Admin
      */
     public function do_options_page()
     {
-        $redirect = urlencode( remove_query_arg( 'msg', $_SERVER['REQUEST_URI'] ) );
-
         ?>
     <div class="wrap">
         <h2>Bibcite settings</h2>
@@ -296,13 +294,27 @@ class Admin
         <form 
             action="<?php echo admin_url( 'admin-post.php' ); ?>" 
             method="post">
-            <h2>Clear cached data</h2>
-            Delete all cached files and database entries.
-            <input 
-                type="hidden" 
-                name="action" 
-                value="<?php echo esc_attr(self::CLEAR_CACHE_ACTION); ?>">
-            <?php submit_button('Clear cache'); ?>
+            <h2>Advanced</h2>
+            <table class="form-table">
+                <tbody>
+                    <tr>
+                        <th scope="row">Logs</th>
+                        <td>
+                            <a href="<?php echo \Bibcite\Common\Logger::getLogFileUrl(); ?>" title="Show logs">Show logs</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Cached data</th>
+                        <td>
+                            <input 
+                                type="hidden" 
+                                name="action" 
+                                value="<?php echo esc_attr(self::CLEAR_CACHE_ACTION); ?>">
+                            <?php submit_button('Clear cache'); ?>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </form>
     </div>
     <?php
@@ -317,7 +329,7 @@ class Admin
      */
     public function do_library_section()
     {
-        echo "Choose the default library URL. The library at this location will be used for bibliographies whose shortcodes do not contain a <tt>file=[URL]</tt> attribute.";
+        echo "Choose the default library URL. The Bibtex library at this location will be used for bibliographies whose shortcodes do not contain a <tt>file=[URL]</tt> attribute.";
     }
 
     /**
@@ -358,7 +370,7 @@ class Admin
         $id = self::LIBRARY_URL;
         $setting = esc_attr(get_option($id));        
         echo "<input type='text' name='$id' id='$id' value='$setting'/>";
-        echo "<p class='description'>URL at which the default library file can be found.</p>";
+        echo "<p class='description'>URL at which the default Bibtex library file can be found. To override this setting, specify a <tt>file=[URL]</tt> attribute on your <tt>bibshow</tt> or <tt>bibtex</tt> shortcodes.</p>";
     }
 
     /**
@@ -375,7 +387,7 @@ class Admin
         $id = self::BIBSHOW_STYLE_NAME;
         $setting = esc_attr(get_option($id));        
         echo "<input list='csl-style-names' name='$id' id='$id' value='$setting'/>";
-        echo "<p class='description' title='Citation style language'><a href='http://citationstyles.org/'>CSL</a> style for individual bibliography entries</p>";
+        echo "<p class='description' title='Citation style language'>Default <a href='http://citationstyles.org/'>CSL</a> style for individual bibliography entries. To specify a custom style for a <tt>bibshow</tt> bibliography, add a <tt>style=[style name]</tt> attribute to your opening <tt>bibshow</tt> shortcode.</p>";
     }
 
     /**

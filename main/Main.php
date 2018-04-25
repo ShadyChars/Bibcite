@@ -384,8 +384,8 @@ class Main {
 		// Get the current set of stored entries for the named URL.
 		$csl_library = new \Bibcite\Common\CslLibrary($url);
 
-		// If the Bibtex file hasn't been downloaded or parsed, do it now. If we succeed in updating
-		// the local copy, update our library.
+		// If the file hasn't been downloaded or parsed, do it now. If we succeed in updating the 
+		// local copy, update our library.
 		if (!\Bibcite\Common\Downloader::save_url_to_file($url, $filename)) {
 			\Bibcite\Common\Logger::instance()->warn(
 				"No new Bibtex library retrieved from URL (${url}). Using cached database entries."
@@ -393,8 +393,8 @@ class Main {
 			return $csl_library;
 		}
 
-		// We have some new data. Parse the file into Bibtex.
-		// KHFIXME: detect file type and handle CSL, RIS as well.
+		// We have some new data. Try to parse as CSL JSON; if that doesn't work, fall back to
+		// Bibtex.
 		$bibtex_entries = \Bibcite\Common\BibtexParser::parse_file_to_bibtex($filename);
 		\Bibcite\Common\Logger::instance()->info(
 			"Retrieved up-to-date Bibtex library from URL (${url}). Parsing..."
@@ -402,9 +402,7 @@ class Main {
 
 		// If we got any entries, update the corresponding library.
 		if (sizeof($bibtex_entries) <= 0) {
-			\Bibcite\Common\Logger::instance()->warn(
-				"No entries found in Bibtex library ($url)."
-			);
+			\Bibcite\Common\Logger::instance()->warn("No entries found in Bibtex library ($url).");
 			return $csl_library;
 		}
 
@@ -417,8 +415,7 @@ class Main {
 				// Convert Bibtex to CSL String, then to a CSL JSON object, then store in 
 				// the library
 				$csl_json_string = $converter->convert(
-					new BibTeX($bibtex_entry["_original"]), 
-					new CSL()
+					new BibTeX($bibtex_entry["_original"]), new CSL()
 				);
 				$csl_json_object = json_decode($csl_json_string)[0];
 				$csl_library->add_or_update(
