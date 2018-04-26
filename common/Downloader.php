@@ -50,11 +50,9 @@ class Downloader
 
         // Get the last known download time for this file, if any
         $last_downloaded_time_transient_name = $transient_prefix . "last-downloaded-time";
-        $last_downloaded_time_string = get_transient($last_downloaded_time_transient_name);
+        $last_downloaded_time_string = get_transient($last_downloaded_time_transient_name);        
+        Logger::instance()->info("URL last downloaded: " . $last_downloaded_time_string);
         $last_downloaded_time = null;
-        Logger::instance()->info(
-            "URL last downloaded: " . var_export(date(DATE_RFC850, $last_downloaded_time), true)
-        );
         if ($last_downloaded_time_string !== false)
             $last_downloaded_time = intval($last_downloaded_time_string);
 

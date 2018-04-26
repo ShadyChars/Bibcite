@@ -6,21 +6,15 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
-Settings and features:
-
+* Find decent CSL style w/ URL, if available
+* If not, create user-defined CSL style
+* Update theme to style appropriately
 * Admin improvements:
-	* Modify descriptions to say that they're default values for shortcodes
-	* If there a bibliography available, let the user render one of the entries
+	* If there's a default bibliography available, let the user render one of the entries
 	* Test the specified library URL
-* Add user-specified CSL style directory
+	* Add a link to a local documentation file?
 * Update readme!
 	* How to build
 	* How to deploy
 	* Shortcodes and attributes
 	* CSL styles and templating
-
-OrkneyDullard/converter
-
-* How to deal w/ braces around titles?
-* Add OrkneyDullard\Converter to travisci.org?
-* Create pull request on the main repo?		

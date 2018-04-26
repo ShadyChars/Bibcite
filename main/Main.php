@@ -388,7 +388,7 @@ class Main {
 		// local copy, update our library.
 		if (!\Bibcite\Common\Downloader::save_url_to_file($url, $filename)) {
 			\Bibcite\Common\Logger::instance()->warn(
-				"No new Bibtex library retrieved from URL (${url}). Using cached database entries."
+				"No new Bibtex file retrieved from URL (${url}). Using cached database entries."
 			);
 			return $csl_library;
 		}
@@ -397,27 +397,34 @@ class Main {
 		// Bibtex.
 		$bibtex_entries = \Bibcite\Common\BibtexParser::parse_file_to_bibtex($filename);
 		\Bibcite\Common\Logger::instance()->info(
-			"Retrieved up-to-date Bibtex library from URL (${url}). Parsing..."
+			"Retrieved up-to-date Bibtex file from URL (${url}). Parsing..."
 		);
 
 		// If we got any entries, update the corresponding library.
 		if (sizeof($bibtex_entries) <= 0) {
-			\Bibcite\Common\Logger::instance()->warn("No entries found in Bibtex library ($url).");
+			\Bibcite\Common\Logger::instance()->warn("No entries found in Bibtex file ($url).");
 			return $csl_library;
 		}
 
 		// We have some entries to parse. Do so now.
-		\Bibcite\Common\Logger::instance()->debug( "Updating Bibtex library ($url)...");
+		\Bibcite\Common\Logger::instance()->debug( "Updating CSL library ($url)...");
 		$converter  = new Converter();
 		foreach ($bibtex_entries as $bibtex_entry) {
 			try {
 
-				// Convert Bibtex to CSL String, then to a CSL JSON object, then store in 
-				// the library
+				// Convert Bibtex to CSL String, then to a CSL JSON object.
 				$csl_json_string = $converter->convert(
 					new BibTeX($bibtex_entry["_original"]), new CSL()
 				);
 				$csl_json_object = json_decode($csl_json_string)[0];
+
+				// Remove any spurious braces - CSL takes care of capitalisation itself.
+				if (isset($csl_json_object->{'title'}))
+					$csl_json_object->{'title'} = \str_replace(
+						array("{", "}"), "", $csl_json_object->{'title'}
+					);
+
+				// Save the CSL JSON object in our library.
 				$csl_library->add_or_update(
 					$bibtex_entry["citation-key"], $csl_json_object
 				);
