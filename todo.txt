@@ -7,9 +7,10 @@ Setup:
 * Wordpress is "admin" / "password"
 
 * Find decent CSL style w/ URL, if available
-* If not, create user-defined CSL style
-* Update theme to style appropriately
+	- There don't seem to be any. May have to copy and edit the CM style.
+* Add user-defined CSL styles
 * Admin improvements:
+	* Add "Cleared cache" status message
 	* If there's a default bibliography available, let the user render one of the entries
 	* Test the specified library URL
 	* Add a link to a local documentation file?
