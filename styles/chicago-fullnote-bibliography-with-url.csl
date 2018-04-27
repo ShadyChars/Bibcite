@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="note" version="1.0" demote-non-dropping-particle="display-and-sort" page-range-format="chicago">
   <info>
-    <title>Chicago Manual of Style 17th edition (full note)</title>
+    <title>Chicago Manual of Style 17th edition (full note) with link in title</title>
     <id>http://shadycharacters.co.uk/styles/chicago-fullnote-bibliography-with-url</id>
     <!--<link href="http://www.zotero.org/styles/chicago-fullnote-bibliography" rel="self"/>
     <link href="http://www.chicagomanualofstyle.org/tools_citationguide.html" rel="documentation"/>-->
@@ -34,7 +34,7 @@
     </contributor>
     <category citation-format="note"/>
     <category field="generic-base"/>
-    <summary>Chicago format with full notes and bibliography</summary>
+    <summary>Chicago format with full notes and bibliography. Where a note has a URL, the title is turned into a link pointing to that location.</summary>
     <updated>2017-12-07T04:15:37+00:00</updated>
     <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
   </info>
@@ -238,6 +238,11 @@
   </macro>
   <macro name="title-note">
     <choose>
+      <if variable="URL">
+        <text value="&lt;a href="/><text variable="URL"/><text value="&gt;"/>
+      </if>
+    </choose>
+    <choose>
       <if variable="title" match="none">
         <text variable="genre"/>
       </if>
@@ -257,6 +262,11 @@
       <else>
         <text variable="title" text-case="title" quotes="true"/>
       </else>
+    </choose>
+    <choose>
+      <if variable="URL">
+        <text value="&lt;/a&gt;"/>
+      </if>
     </choose>
   </macro>
   <macro name="title">
@@ -1240,9 +1250,6 @@
             <if variable="DOI">
               <text variable="DOI" prefix="https://doi.org/"/>
             </if>
-            <else>
-              <text variable="URL"/>
-            </else>
           </choose>
         </if>
       </choose>

@@ -127,12 +127,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/OrkneyDullard/converter.git",
-                "reference": "2955200fa0667bd6f1fa0e476272c372de2a0f1d"
+                "reference": "f722bf19ed0685ac674171fb84e3e58284b3ce01"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/2955200fa0667bd6f1fa0e476272c372de2a0f1d",
-                "reference": "2955200fa0667bd6f1fa0e476272c372de2a0f1d",
+                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/f722bf19ed0685ac674171fb84e3e58284b3ce01",
+                "reference": "f722bf19ed0685ac674171fb84e3e58284b3ce01",
                 "shasum": ""
             },
             "require": {
@@ -174,9 +174,9 @@
                 "ris"
             ],
             "support": {
-                "source": "https://github.com/OrkneyDullard/converter/tree/latex-special-characters"
+                "source": "https://github.com/OrkneyDullard/converter/tree/master"
             },
-            "time": "2018-04-08T20:56:46+00:00"
+            "time": "2018-04-27T20:25:42+00:00"
         },
         {
             "name": "myclabs/php-enum",

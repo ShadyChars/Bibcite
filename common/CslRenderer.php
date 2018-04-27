@@ -19,11 +19,17 @@ class CslRenderer
 	// The location of known CSL style files.
 	private $csl_styles_path;
 
+	// The location of user-specified CSL style files.
+	private $user_csl_styles_path;
+
 	// The location of known Twig template files.
 	private $twig_templates_path;
 
 	// The set of known CSL style names.
 	private $csl_style_names;
+
+	// The set of known user-specified CSL style names.
+	private $user_csl_style_names;
 
 	// The set of known Twig template names.
 	private $twig_template_names;
@@ -63,7 +69,22 @@ class CslRenderer
 
 		$this->csl_style_names = array();
 		foreach ($iterator as $csl_style_file) 
-			$this->csl_style_names[] = basename(substr($csl_style_file, 0, -4));
+			if (substr($csl_style_file, -4) == ".csl")
+				$this->csl_style_names[] = basename(substr($csl_style_file, 0, -4));
+
+		// List user-generated styles
+		$this->user_csl_styles_path = implode( 
+			DIRECTORY_SEPARATOR, array(plugin_dir_path(dirname(__FILE__)), 'styles')
+		);
+
+		$dir_iterator = new \RecursiveDirectoryIterator($this->user_csl_styles_path);
+		$iterator = new \RecursiveIteratorIterator(
+			$dir_iterator, \RecursiveIteratorIterator::SELF_FIRST
+		);
+
+		foreach ($iterator as $user_csl_style_file) 
+			if (substr($user_csl_style_file, -4) == ".csl")
+				$this->user_csl_style_names[] = basename(substr($user_csl_style_file, 0, -4));
 
 		// List Twig templates
 		$this->twig_templates_path = implode( 
@@ -77,7 +98,8 @@ class CslRenderer
 
 		$this->twig_template_names = array();
 		foreach ($iterator as $twig_template_filename) 
-			$this->twig_template_names[] = basename(substr($twig_template_filename, 0, -5));
+			if (substr($twig_template_filename, -5) == ".twig")
+				$this->twig_template_names[] = basename(substr($twig_template_filename, 0, -5));
 	}
 
 	/**
@@ -88,7 +110,7 @@ class CslRenderer
 	 * @since 1.0.0
 	 */
 	public function getCslStyleNames() : array {
-		return $this->csl_style_names;
+		return array_merge($this->csl_style_names, $this->user_csl_style_names);
 	}
 
 	/**
@@ -121,8 +143,26 @@ class CslRenderer
 		string $twig_template_name
 	) : string {
 
-		// Render the entries with the specified CiteProc style
-		$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet($csl_style_name);
+		// Load the style. Note that this may be a user-specified style.
+		$style = null;
+		if (in_array($csl_style_name, $this->user_csl_style_names)) {			
+			$user_style_file = implode( 
+				DIRECTORY_SEPARATOR, array($this->user_csl_styles_path, $csl_style_name . '.csl')
+			);
+			\Bibcite\Common\Logger::instance()->debug("Using custom style: $user_style_file");
+			$style = file_get_contents($user_style_file);
+		} else if (in_array($csl_style_name, $this->csl_style_names)) {
+			\Bibcite\Common\Logger::instance()->debug("Using built-in style: $csl_style_name");
+			$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet($csl_style_name);
+		} else {
+			$csl_default_style = $this->csl_style_names[0];
+			\Bibcite\Common\Logger::instance()->warn(
+				"Unrecognised style: $csl_style_name. Defaulting to $csl_default_style."
+			);
+			$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet($csl_default_style);
+		}
+
+		// Render the entries with the specified CiteProc style		
 		$citeProc = new \Seboettg\CiteProc\CiteProc($style);
 		$rendered_entries = array();
 		foreach ($csl_entries as $index => $csl_entry) {			
@@ -139,7 +179,7 @@ class CslRenderer
 				$rendered_entries[] = array(
 					"index" => $index,							// integer index
 					"key" => $key,								// citation key string
-					"csl" => $csl_entry,						// native CSL JSON object
+					"csl" => json_encode($csl_entry),			// native CSL JSON as string
 					"entry" => $rendered_entry					// rendered citation as string
 				);
 			} catch (Exception $e) {

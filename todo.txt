@@ -6,9 +6,7 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
-* Find decent CSL style w/ URL, if available
-	- There don't seem to be any. May have to copy and edit the CM style.
-* Add user-defined CSL styles
+* Add default Twig template
 * Admin improvements:
 	* Add "Cleared cache" status message
 	* If there's a default bibliography available, let the user render one of the entries
@@ -19,3 +17,5 @@ Setup:
 	* How to deploy
 	* Shortcodes and attributes
 	* CSL styles and templating
+		* All entries retrieved from the source library are rendered individually as citations, then composed into a list using a Twig template.
+* Publish to Github!
