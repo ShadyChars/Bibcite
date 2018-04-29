@@ -6,15 +6,15 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
-* Add (hard coded?) default Twig template
 * Admin improvements:
 	* Add "Cleared cache" status message
 	* If there's a default bibliography available, let the user render one of the entries
 	* Test the specified library URL
 	* Add a link to a local documentation file?
-* Update readme!
+* Update readme.md
 	* How to build
 	* How to deploy
+* Update readme.txt
 	* Shortcodes and attributes
 	* CSL styles and templating
 		* All entries retrieved from the source library are rendered individually as citations, then composed into a list using a Twig template.

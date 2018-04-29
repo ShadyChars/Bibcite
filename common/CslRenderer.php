@@ -243,7 +243,17 @@ TWIG_DEFAULT_TEMPLATE
 
 		// Now apply the list template.
 		try {			
-			$twig = new \Twig_Environment($loader);
+			$twig_cache_dir = implode( 
+				DIRECTORY_SEPARATOR, 
+				array( 
+					plugin_dir_path(dirname(__FILE__)), 
+					BIBCITE_CACHE_DIRECTORY, 
+					'twig'
+				)
+			);
+			$twig = new \Twig_Environment(
+				$loader, array('cache' => $twig_cache_dir)
+			);
 			return $twig->render(
 				"${twig_template_name}.twig", 
 				array('entries' => $rendered_entries)

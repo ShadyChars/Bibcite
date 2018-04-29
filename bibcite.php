@@ -41,8 +41,8 @@ define('BIBCITE_VERSION', '1.0.0');
 define('BIBCITE_PREFIX', 'BIBCITE');
 
 /**
- * Directory used to cache downloaded files and compiles templates, relative to the main plugin
- * directory.
+ * Directory used to cache downloaded files and compiles templates, relative to 
+ * the main plugin directory.
  */
 define('BIBCITE_CACHE_DIRECTORY', 'cache');
 
