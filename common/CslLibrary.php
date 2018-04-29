@@ -5,22 +5,14 @@ namespace Bibcite\Common;
 require plugin_dir_path(dirname(__FILE__)) . 'vendor\autoload.php';
 
 /**
- * Defines a citation library held in the WordPress database.
- *
- * @link       https://github.com/OrkneyDullard/bibcite
- * @since      1.0.0
- *
- * @package    Bibcite/Common
- */
-
-/**
  * Defines a CSL citation library held in the WordPress database.
  * 
  * Each instance of this class manages a named database of CSL entries.
  *
- * @since      1.0.0
- * @package    Bibcite/Common
- * @author     Keith Houston <keith@shadycharacters.co.uk>
+ * @author Keith Houston <keith@shadycharacters.co.uk>
+ * @link https://github.com/OrkneyDullard/Bibcite
+ * @package Bibcite\Common
+ * @since 1.0.0
  */
 class CslLibrary
 {
@@ -28,21 +20,31 @@ class CslLibrary
     private const KEY = 'csl_key';
     private const CSL_VALUE = 'csl_value';
 
-    // Source URL and corresponding table name.
-    private $name;
+    // Specified scope and corresponding table name.
+    private $scope;
     private $table_name;
 
     /**
-     * Create a DB table for the specified name, if one does not already exist.
+     * Constructor. Give access to key/CSL value pairs scoped to a given name.
+     * Each scope is managed as a separate database table.
+     *
+     * @param string $scope
+     * @author Keith Houston <keith@shadycharacters.co.uk>
+     * @link https://github.com/OrkneyDullard/Bibcite
+     * @package Bibcite
+     * @since 1.0.0
      */
-    public function __construct($name)
+    public function __construct(string $scope)
     {
         global $wpdb;
 
-        // Record the requested table name, then create a DB-friendly, prefixed version.
-        $this->name = $name;
-        $this->table_name = $wpdb->prefix . BIBCITE_SC_PREFIX . "_" . md5($name);
-        Logger::instance()->debug("Using table ($name) with name ($this->table_name).");
+        // Record the requested scope, then create a DB-friendly, prefixed 
+        // version of it.
+        $this->scope = $scope;
+        $this->table_name = $wpdb->prefix . BIBCITE_PREFIX . "_" . md5($scope);
+        Logger::instance()->debug(
+            "Using table name '$this->table_name' for scope '$scope'"
+        );
 
         // Create the DB, if it doesn't already exist.
         $charset_collate = $wpdb->get_charset_collate();
@@ -80,22 +82,26 @@ class CslLibrary
 
         global $wpdb;
 
-        $table_prefix = $wpdb->prefix . BIBCITE_SC_PREFIX . "_";
+        $table_prefix = $wpdb->prefix . BIBCITE_PREFIX . "_";
         $tables = $wpdb->get_results("SHOW TABLES");
         foreach ($tables as $table)
             foreach ($table as $table_name)
-                if (strncasecmp($table_name, $table_prefix, strlen($table_prefix)) == 0) {
-                    \Bibcite\Common\Logger::instance()->debug("Dropping table: $table_name...");
+                if (strncasecmp(
+                    $table_name, $table_prefix, strlen($table_prefix)
+                ) == 0) {
+                    \Bibcite\Common\Logger::instance()->debug(
+                        "Dropping table: $table_name..."
+                    );
                     $wpdb->query("DROP TABLE $table_name");
                 }
     }
 
     /**
-     * Get the name of this library.
+     * Get the scope of this library.
      */
-    public function getName()
+    public function getScope()
     {
-        return $this->name;
+        return $this->scope;
     }
 
     /**
@@ -118,10 +124,12 @@ class CslLibrary
     }
 
     /**
-     * Get a single CSL JSON object from the library corresponding to a supplied key.
+     * Get a single CSL JSON object from the library corresponding to a supplied 
+     * key.
      *
      * @param string $key the citation key to search for
-     * @return object|false returns the CSL JSON object if found and false if not.
+     * @return object|false returns the CSL JSON object if found and false if 
+     * not
      */
     public function get($key)
     {

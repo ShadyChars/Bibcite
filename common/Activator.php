@@ -3,22 +3,14 @@
 namespace Bibcite\Common;
 
 /**
- * Fired during plugin activation
- *
- * @link       https://github.com/OrkneyDullard/bibcite
- * @since      1.0.0
- *
- * @package    Bibcite/Common
- */
-
-/**
  * Fired during plugin activation.
  *
  * This class defines all code necessary to run during the plugin's activation.
  *
- * @since      1.0.0
- * @package    Bibcite/Common
- * @author     Keith Houston <keith@shadycharacters.co.uk>
+ * @author Keith Houston <keith@shadycharacters.co.uk>
+ * @link https://github.com/OrkneyDullard/Bibcite
+ * @package Bibcite\Common
+ * @since 1.0.0
  */
 class Activator
 {

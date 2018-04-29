@@ -1,7 +1,7 @@
-=== Plugin Name ===
-Contributors: (this should be a list of wordpress.org userid's)
-Donate link: https://github.com/OrkneyDullard/bibcite/
-Tags: comments, spam
+=== Bibcite ===
+Contributors: https://github.com/OrkneyDullard/
+Donate link: https://github.com/OrkneyDullard/Bibcite/
+Tags: references, bibtex, CSL, citations
 Requires at least: 3.0.1
 Tested up to: 3.4
 Stable tag: 4.3

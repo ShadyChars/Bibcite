@@ -8,6 +8,7 @@ require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
  * A singleton logging class.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
+ * @link https://github.com/OrkneyDullard/Bibcite
  * @package Bibcite\Common
  * @since 1.0.0
  */
@@ -55,7 +56,7 @@ class Logger
 	 * @since 1.0.0
 	 */
 	public static function getLogFilePath() : string {
-		return plugin_dir_path(dirname(__FILE__)) . "/logs/bibcite-sc.log";
+		return plugin_dir_path(dirname(__FILE__)) . "/logs/bibcite.log";
 	}
 
 	private function __construct() {
@@ -65,15 +66,20 @@ class Logger
 		\Logger::configure(
 			$configuration, 
 			new class implements \LoggerConfigurator {
-				public function configure(\LoggerHierarchy $hierarchy, $input = null) {
+				public function configure(
+					\LoggerHierarchy $hierarchy, $input = null
+				) {
 
 					// A simple layout
 					$layout = new \LoggerLayoutPattern();
-					$layout->setConversionPattern("%date [%level] %msg%newline");
+					$layout->setConversionPattern(
+						"%date [%level] %msg%newline"
+					);
 					$layout->activateOptions();
 							
 					// Create an appender which logs to file
-					$appFile = new \LoggerAppenderRollingFile ('file-appender');
+					$appFile = 
+						new \LoggerAppenderRollingFile('file-appender');
 					$appFile->setFile(Logger::getLogFilePath());
 					$appFile->setAppend(true);
 					$appFile->setThreshold('all');
@@ -89,22 +95,54 @@ class Logger
 			}
 		);
 
-		$this->log = \Logger::getLogger('bibcite-sc');
+		$this->log = \Logger::getLogger('bibcite');
 	}
 
-	public function debug($message) {
+	/**
+	 * Log a message at debug level.
+	 *
+	 * @param string $message message to be logged
+	 * @return void
+	 * @author Keith Houston <keith@shadycharacters.co.uk>
+	 * @since 1.0.0
+	 */
+	public function debug(string $message) {
 		$this->log->debug($message);
 	}
 
-	public function info($message) {
+	/**
+	 * Log a message at info level.
+	 *
+	 * @param string $message message to be logged
+	 * @return void
+	 * @author Keith Houston <keith@shadycharacters.co.uk>
+	 * @since 1.0.0
+	 */
+	public function info(string $message) {
 		$this->log->info($message);
 	}
 
-	public function warn($message) {
+	/**
+	 * Log a message at warning level.
+	 *
+	 * @param string $message message to be logged
+	 * @return void
+	 * @author Keith Houston <keith@shadycharacters.co.uk>
+	 * @since 1.0.0
+	 */
+	public function warn(string $message) {
 		$this->log->warn($message);
 	}
 
-	public function error($message) {
+	/**
+	 * Log a message at error level.
+	 *
+	 * @param string $message message to be logged
+	 * @return void
+	 * @author Keith Houston <keith@shadycharacters.co.uk>
+	 * @since 1.0.0
+	 */
+	public function error(string $message) {
 		$this->log->error($message);
 	}
 }
