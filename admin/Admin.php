@@ -79,7 +79,7 @@ class Admin
     private const CLEAR_CACHE_ACTION = BIBCITE_PREFIX . "_CLEAR_CACHE";
     
     // The ID of this plugin.
-    private $bibcite_sc;
+    private $bibcite;
 
     // The version of this plugin.
     private $version;
@@ -87,15 +87,15 @@ class Admin
     /**
      * Initialize the class and set its properties.
      *
-     * @param string $bibcite_sc plugin ID
+     * @param string $bibcite plugin ID
      * @param string $version plugin version
      * @author Keith Houston <keith@shadycharacters.co.uk>
      * @since 1.0.0
      */
-    public function __construct(string $bibcite_sc, string $version)
+    public function __construct(string $bibcite, string $version)
     {
 
-        $this->bibcite_sc = $bibcite_sc;
+        $this->bibcite = $bibcite;
         $this->version = $version;
 
         // Handle custom POST messages by firing our custom 'clear_cache' hook.

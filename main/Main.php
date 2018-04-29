@@ -31,7 +31,7 @@ class Main {
 	private const ORDER_ATTRIBUTE = BIBCITE_PREFIX . "_ORDER";
 
 	// The ID of this plugin.
-	private $bibcite_sc;
+	private $bibcite;
 
 	// The version of this plugin.
 	private $version;
@@ -44,12 +44,12 @@ class Main {
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
-	 * @param      string    $bibcite_sc       The name of the plugin.
+	 * @param      string    $bibcite       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( string $bibcite_sc, string $version ) {
+	public function __construct( string $bibcite, string $version ) {
 
-		$this->bibcite_sc = $bibcite_sc;
+		$this->bibcite = $bibcite;
 		$this->version = $version;
 		$this->post_id_to_bibshow_keys = array();
 	}

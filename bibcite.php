@@ -54,7 +54,7 @@ define('BIBCITE_CLEAR_CACHE_ACTION', BIBCITE_PREFIX . "_CLEAR_CACHE");
 /**
  * The code that runs during plugin activation.
  */
-function activate_bibcite_sc()
+function activate_bibcite()
 {
     Bibcite\Common\Logger::instance()->info("Activating plugin...");
     Bibcite\Common\Activator::activate();
@@ -63,7 +63,7 @@ function activate_bibcite_sc()
 /**
  * The code that runs during plugin deactivation.
  */
-function deactivate_bibcite_sc()
+function deactivate_bibcite()
 {
     Bibcite\Common\Logger::instance()->info("Dectivating plugin...");
     Bibcite\Common\Deactivator::deactivate();
@@ -72,7 +72,7 @@ function deactivate_bibcite_sc()
 /**
  * The code that runs during our custom BIBCITE_CLEAR_CACHE_ACTION.
  */
-function clear_cache_bibcite_sc()
+function clear_cache_bibcite()
 {
     Bibcite\Common\Logger::instance()->info("Clearing cached data...");
     Bibcite\Common\CacheClearer::clear_cache();
@@ -81,16 +81,16 @@ function clear_cache_bibcite_sc()
 /**
  * The code that runs during plugin uninstallation.
  */
-function uninstall_bibcite_sc()
+function uninstall_bibcite()
 {
     Bibcite\Common\Logger::instance()->info("Uninstalling plugin...");
     Bibcite\Common\Uninstaller::uninstall();
 }
 
-register_activation_hook(__FILE__, 'activate_bibcite_sc');
-register_deactivation_hook(__FILE__, 'deactivate_bibcite_sc');
-register_uninstall_hook(__FILE__, 'uninstall_bibcite_sc');
-add_action(BIBCITE_CLEAR_CACHE_ACTION, 'clear_cache_bibcite_sc');
+register_activation_hook(__FILE__, 'activate_bibcite');
+register_deactivation_hook(__FILE__, 'deactivate_bibcite');
+register_uninstall_hook(__FILE__, 'uninstall_bibcite');
+add_action(BIBCITE_CLEAR_CACHE_ACTION, 'clear_cache_bibcite');
 
 /**
  * Begins execution of the plugin.
@@ -101,11 +101,11 @@ add_action(BIBCITE_CLEAR_CACHE_ACTION, 'clear_cache_bibcite_sc');
  *
  * @since    1.0.0
  */
-function run_bibcite_sc()
+function run_bibcite()
 {
 
     $plugin = new Bibcite\Common\Bibcite();
     $plugin->run();
 
 }
-run_bibcite_sc();
+run_bibcite();

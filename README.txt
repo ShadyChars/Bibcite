@@ -45,7 +45,7 @@ e.g.
 
 1. Upload `bibcite-sc.php` to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('bibcite_sc_hook'); ?>` in your templates
+1. Place `<?php do_action('bibcite_hook'); ?>` in your templates
 
 == Frequently Asked Questions ==
 

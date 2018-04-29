@@ -211,9 +211,38 @@ class CslRenderer
 			}
 		}
 
-		// Now apply the list template.
-		try {
+		// Select the template style. Note that this may be our single hard-
+		// coded template.
+		$loader = null;
+		$user_template_file = implode( 
+			DIRECTORY_SEPARATOR, 
+			array($this->twig_templates_path, $twig_template_name . '.twig')
+		);
+		if (in_array($twig_template_name, $this->twig_template_names)) {			
+			\Bibcite\Common\Logger::instance()->debug(
+				"Using custom template: $user_template_file"
+			);
 			$loader = new \Twig_Loader_Filesystem($this->twig_templates_path);
+		} else {
+			\Bibcite\Common\Logger::instance()->warn(
+				"Unrecognised template: $user_template_file. Defaulting to built-in unordered list."
+			);
+			$twig_template_name = "built-in-unordered-list";
+			$loader = new \Twig_Loader_Array(
+				array(
+					"${twig_template_name}.twig" => <<<TWIG_DEFAULT_TEMPLATE
+<ul class="bibcite-default-template">
+{% for entry in entries %}
+	<li>{{ entry.entry | raw }}</li>
+{% endfor %}
+</ul>
+TWIG_DEFAULT_TEMPLATE
+				)
+			);
+		}
+
+		// Now apply the list template.
+		try {			
 			$twig = new \Twig_Environment($loader);
 			return $twig->render(
 				"${twig_template_name}.twig", 
