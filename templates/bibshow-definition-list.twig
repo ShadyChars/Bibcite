@@ -1,6 +1,6 @@
 <dl class="bibshow">
 {% for entry in entries %}
 	<dt id="bibshow_{{ entry.key }}">{{ entry.index + 1 }}.</dt>
-	<dd>{{ entry.entry | raw }} <a href="#bibcite_{{ entry.key }}" class="backlink" title="Jump back to reference {{ entry.key }} in the text.">&#8617;</a></dd>
+	<dd>{{ entry.entry | raw }} <a href="#bibcite_{{ entry.key }}" class="backlink" title="Jump back to reference {{ entry.key }} in the text.">&#8610;</a></dd>
 {% endfor %}
 </dl>

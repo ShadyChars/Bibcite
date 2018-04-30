@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor\autoload.php';
+require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
 
 /**
  * Provides a single point of access to citation rendering services and 

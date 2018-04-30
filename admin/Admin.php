@@ -2,7 +2,7 @@
 
 namespace Bibcite\Admin;
 
-require plugin_dir_path(dirname(__FILE__)) . 'vendor\autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
 
 /**
  * The admin-specific functionality of the plugin.
@@ -77,6 +77,9 @@ class Admin
     
     // Identifies our custom "clear cache" action.
     private const CLEAR_CACHE_ACTION = BIBCITE_PREFIX . "_CLEAR_CACHE";
+
+    // Identifies our custom "cleared cache" GET query param.
+    private const CLEARED_CACHE_QUERY_ARG = "cleared-cache";
     
     // The ID of this plugin.
     private $bibcite;
@@ -98,6 +101,18 @@ class Admin
         $this->bibcite = $bibcite;
         $this->version = $version;
 
+        // Ensure that our custom "cache-cleared" query arg is removed after
+        // we've handled it.
+        // TODO: this doesn't seem to stop the "Cache cleared" admin notice 
+        // reappearing if we hit "save" again.
+        add_filter(
+            'removable_query_args', 
+            function($args) {
+                array_push($args, self::CLEARED_CACHE_QUERY_ARG);
+                return $args;
+            }
+        );
+
         // Handle custom POST messages by firing our custom 'clear_cache' hook.
         add_action(
             "admin_post_" . self::CLEAR_CACHE_ACTION,
@@ -105,14 +120,21 @@ class Admin
                 \Bibcite\Common\Logger::instance()->debug(
                     "Received custom " . self::CLEAR_CACHE_ACTION . " action"
                 );
+
+                // Fire the custom action
                 do_action(BIBCITE_CLEAR_CACHE_ACTION);
+
+                // Redirect to the source page and append ?cache-cleared=true.
                 wp_redirect(
-                    admin_url('options-general.php?page=' . self::MENU_SLUG)
+                    add_query_arg(
+                        self::CLEARED_CACHE_QUERY_ARG,
+                        'true',
+                        admin_url('options-general.php?page=' . self::MENU_SLUG)
+                    )
                 );
                 die(__FILE__);
             }
         );
-
     }
 
     /**
@@ -156,6 +178,25 @@ class Admin
             self::MENU_SLUG, // menu slug
             array($this, 'do_options_page') // method to handle the menu
         );
+    }
+
+    /**
+     * Called in response to the 'admin_notices' hook. Used to display admin
+     * notices for this plugin.
+     *
+     * @return void
+     * @author Keith Houston <keith@shadycharacters.co.uk>
+     * @since 1.0.0
+     */
+    public function notices()
+    {
+        if (isset($_GET[self::CLEARED_CACHE_QUERY_ARG]) 
+            && $_GET[self::CLEARED_CACHE_QUERY_ARG] == 'true'
+        ) : ?>
+            <div class="notice notice-success is-dismissible">
+                <p><strong><?php _e('Cache cleared.', 'bibcite'); ?></strong></p>
+            </div>
+        <?php endif;
     }
 
     /**
@@ -319,7 +360,7 @@ class Admin
                                 type="hidden"
                                 name="action"
                                 value="<?php echo esc_attr(self::CLEAR_CACHE_ACTION); ?>"/>
-                            <?php submit_button('Clear cache');?>
+                            <?php submit_button('Clear cache', 'secondary');?>
                         </td>
                     </tr>
                 </tbody>

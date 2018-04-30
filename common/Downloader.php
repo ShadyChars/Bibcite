@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path(dirname(__FILE__)) . 'vendor\autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
 
 /**
  * A static class used to download URLs and cache them to specified disk 

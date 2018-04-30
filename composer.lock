@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "8fec15c0ad329b7bac7f6e725cb4a72d",
+    "content-hash": "4652e95b6de85f707eea109fe104124a",
     "packages": [
         {
             "name": "apache/log4php",
@@ -127,12 +127,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/OrkneyDullard/converter.git",
-                "reference": "f722bf19ed0685ac674171fb84e3e58284b3ce01"
+                "reference": "e82a770729574ea5beda2009fb21fec0cfc4b9c1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/f722bf19ed0685ac674171fb84e3e58284b3ce01",
-                "reference": "f722bf19ed0685ac674171fb84e3e58284b3ce01",
+                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/e82a770729574ea5beda2009fb21fec0cfc4b9c1",
+                "reference": "e82a770729574ea5beda2009fb21fec0cfc4b9c1",
                 "shasum": ""
             },
             "require": {
@@ -176,7 +176,7 @@
             "support": {
                 "source": "https://github.com/OrkneyDullard/converter/tree/master"
             },
-            "time": "2018-04-27T20:25:42+00:00"
+            "time": "2018-04-30T19:55:56+00:00"
         },
         {
             "name": "myclabs/php-enum",
@@ -540,6 +540,8 @@
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "php": ">=7.0.0"
+    },
     "platform-dev": []
 }

@@ -6,8 +6,14 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
+* Fix styling
+	* Adjacent notes don't need a space between them - fix template?
+	* Check that notes are rendered as red, quiet links
+	* Check that backlinks are rendered as red, quiet links
+* Fix Latex characters in names and other strings
+* Fix extra braces in names and other strings
 * Admin improvements:
-	* Add "Cleared cache" status message
+	* Add "Cleared cache" status message - IN PROGRESS
 	* If there's a default bibliography available, let the user render one of the entries
 	* Test the specified library URL
 	* Add a link to a local documentation file?
@@ -18,5 +24,6 @@ Setup:
 	* Shortcodes and attributes
 	* CSL styles and templating
 		* All entries retrieved from the source library are rendered individually as citations, then composed into a list using a Twig template.
+* Remove this file
 * Publish to Github!
 * Tag at 1.0.0

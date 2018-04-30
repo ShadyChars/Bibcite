@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path(dirname(__FILE__)) . 'vendor\autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
 
 /**
  * Parses a local Bibtex file and returns a list of parsed entries.

@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path(dirname(__FILE__)) . 'vendor\autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
 
 /**
  * The core plugin class.
@@ -139,6 +139,7 @@ class Bibcite
 
         $this->loader->add_action('admin_init', $plugin_admin, 'init');
         $this->loader->add_action('admin_menu', $plugin_admin, 'menu');
+        $this->loader->add_action('admin_notices', $plugin_admin, 'notices');
 
     }
 

@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path(dirname(__FILE__)) . 'vendor\autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
 
 /**
  * Defines a CSL citation library held in the WordPress database.
