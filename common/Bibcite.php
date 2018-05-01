@@ -72,35 +72,13 @@ class Bibcite
         }
         $this->bibcite = 'bibcite';
 
-        $this->load_dependencies();
+        $this->loader = new Loader();
+
         $this->set_locale();
         $this->define_admin_hooks();
         $this->define_public_hooks();
-        $this->define_shortcodes();
 
-    }
-
-    /**
-     * Load the required dependencies for this plugin.
-     *
-     * Include the following files that make up the plugin:
-     *
-     * - Bibcite_Loader. Orchestrates the hooks of the plugin.
-     * - Bibcite_i18n. Defines internationalization functionality.
-     * - Bibcite_Admin. Defines all hooks for the admin area.
-     * - Bibcite_Public. Defines all hooks for the public side of the site.
-     *
-     * Create an instance of the loader which will be used to register the hooks
-     * with WordPress.
-     *
-     * @since    1.0.0
-     * @access   private
-     */
-    private function load_dependencies()
-    {
-
-        $this->loader = new Loader();
-
+        Logger::instance()->debug("Loaded Bibcite plugin.");
     }
 
     /**
@@ -153,19 +131,6 @@ class Bibcite
     private function define_public_hooks()
     {
 
-        // Nothing to do
-
-    }
-
-    /**
-     * Register all of the shortcodes supported by the plugin.
-     *
-     * @since    1.0.0
-     * @access   private
-     */
-    private function define_shortcodes()
-    {
-
         $plugin_public = new \Bibcite\Main\Main(
             $this->get_bibcite(), $this->get_version()
         );
@@ -202,17 +167,6 @@ class Bibcite
     public function get_bibcite()
     {
         return $this->bibcite;
-    }
-
-    /**
-     * The reference to the class that orchestrates the hooks with the plugin.
-     *
-     * @since     1.0.0
-     * @return    Bibcite_Loader    Orchestrates the hooks of the plugin.
-     */
-    public function get_loader()
-    {
-        return $this->loader;
     }
 
     /**

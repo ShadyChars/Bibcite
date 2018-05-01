@@ -24,6 +24,14 @@ class CslLibrary
     private $scope;
     private $table_name;
 
+    // Set of known scopes.
+    private static $scopes = array();
+
+    // Cached query results. This is a static array shared by all CslLibrary
+    // instances, accessed using the static add_or_update_cached_value() and 
+    // get_cached_value() methods.
+    private static $cached_keys_to_entries = array();
+
     /**
      * Constructor. Give access to key/CSL value pairs scoped to a given name.
      * Each scope is managed as a separate database table.
@@ -46,6 +54,10 @@ class CslLibrary
             "Using table name '$this->table_name' for scope '$scope'"
         );
 
+        // If we've already created the table, exit now.
+        if (\in_array($this->scope, self::$scopes))
+            return;
+
         // Create the DB, if it doesn't already exist.
         $charset_collate = $wpdb->get_charset_collate();
         $key_name = self::KEY;  // Can't add const to double-quoted string.
@@ -58,6 +70,9 @@ class CslLibrary
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql);
+
+        // Done. Record the scope so we don't try to recreate the table.
+        self::$scopes[] = $this->scope;
     }
 
     /**
@@ -80,6 +95,11 @@ class CslLibrary
      */
     public static function uninstall() {
 
+        // Clear our static caches.
+        self::$scopes = array();
+        self::$cached_keys_to_entries = array();
+
+        // Clear our DBs.
         global $wpdb;
 
         $table_prefix = $wpdb->prefix . BIBCITE_PREFIX . "_";
@@ -113,14 +133,17 @@ class CslLibrary
      */
     public function add_or_update(string $key, $csl_json_object)
     {
-        // Serialise to a JSON string
+        // Update our local cache first.
+        self::add_or_update_cached_value($this->scope, $key, $csl_json_object);
+
+        // Next, serialise to a JSON string and write to the DB.
         $csl_json_string = json_encode($csl_json_object);
 
         global $wpdb;
         $wpdb->replace(
-            $this->table_name,
-            array( self::KEY => $key, self::CSL_VALUE => $csl_json_string)
-        );
+            $this->table_name, 
+            array(self::KEY => $key, self::CSL_VALUE => $csl_json_string)
+        );        
     }
 
     /**
@@ -131,8 +154,14 @@ class CslLibrary
      * @return object|false returns the CSL JSON object if found and false if 
      * not
      */
-    public function get($key)
+    public function get(string $key)
     {
+        // Can we return this from our local cache?
+        $cached_value = self::get_cached_value($this->scope, $key);
+        if ($cached_value !== false)
+            return $cached_value;
+
+        // If not, get the result from our table and deserialize it.
         global $wpdb;
         $key_name = self::KEY;
         $row = $wpdb->get_row(
@@ -142,9 +171,49 @@ class CslLibrary
         if ($row) {
             // Deserialize to PHP object
             $csl_json_string = $row->{self::CSL_VALUE};
-            return json_decode($csl_json_string);
+
+            // Add to our local cache so we can avoid hitting the DB next time.
+            $csl_json_object = json_decode($csl_json_string);
+            self::add_or_update_cached_value(
+                $this->scope, $key, $csl_json_object
+            );
+
+            // And return.
+            return $csl_json_object;
         } else {
             return false;
         }
+    }
+
+    /**
+     * Add a CSL entry as a single JSON object to our local cache.
+     *
+     * @param string $scope the scope in which the (key, value) pair lives
+     * @param string $key the key that identifies the entry
+     * @param string $csl_json_object a CSL JSON object describing the citation
+     * @return void
+     */
+    private static function add_or_update_cached_value(
+        string $scope, string $key, $csl_json_object
+    ) {
+        $scoped_key = "$scope:$key";
+        self::$cached_keys_to_entries[$scoped_key] = $csl_json_object;
+    }
+
+    /**
+     * Get a single CSL JSON object from our local cache.
+     *
+     * @param string $scope the scope in which the key lives
+     * @param string $key the citation key to search for
+     * @return object|false returns the CSL JSON object if found and false if 
+     * not
+     */
+    public static function get_cached_value(string $scope, string $key) {
+        
+        $scoped_key = "$scope:$key";
+        if (isset(self::$cached_keys_to_entries[$scoped_key]))
+            return self::$cached_keys_to_entries[$scoped_key];
+        else 
+            return false;
     }
 }

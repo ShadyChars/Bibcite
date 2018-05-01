@@ -6,18 +6,16 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
-* Fix styling
-	* Adjacent notes don't need a space between them - fix template?
-	* Check that notes are rendered as red, quiet links
-	* Check that backlinks are rendered as red, quiet links
-* Fix Latex characters in names and other strings
-* Fix extra braces in names and other strings
+* Performance - some entries not making it into the DB before they're used in the bibliography?
+* Fix Latex characters in names and other strings (Converter?)
+* Remove extra braces in names and other strings
 * Admin improvements:
 	* Add "Cleared cache" status message - IN PROGRESS
 	* If there's a default bibliography available, let the user render one of the entries
 	* Test the specified library URL
 	* Add a link to a local documentation file?
-* Update readme.md
+	* Don't install if < PHP v7.1 available
+* Update readme.md (and/or readme.txt?)
 	* How to build
 	* How to deploy
 * Update readme.txt

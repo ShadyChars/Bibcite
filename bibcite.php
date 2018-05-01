@@ -58,6 +58,7 @@ function activate_bibcite()
 {
     Bibcite\Common\Logger::instance()->info("Activating plugin...");
     Bibcite\Common\Activator::activate();
+    Bibcite\Common\Logger::instance()->info("Activated plugin.");
 }
 
 /**
@@ -65,8 +66,9 @@ function activate_bibcite()
  */
 function deactivate_bibcite()
 {
-    Bibcite\Common\Logger::instance()->info("Dectivating plugin...");
+    Bibcite\Common\Logger::instance()->info("Deactivating plugin...");
     Bibcite\Common\Deactivator::deactivate();
+    Bibcite\Common\Logger::instance()->info("Deactivated plugin.");
 }
 
 /**
@@ -76,6 +78,7 @@ function clear_cache_bibcite()
 {
     Bibcite\Common\Logger::instance()->info("Clearing cached data...");
     Bibcite\Common\CacheClearer::clear_cache();
+    Bibcite\Common\Logger::instance()->info("Cleared cached data.");
 }
 
 /**
@@ -85,12 +88,8 @@ function uninstall_bibcite()
 {
     Bibcite\Common\Logger::instance()->info("Uninstalling plugin...");
     Bibcite\Common\Uninstaller::uninstall();
+    Bibcite\Common\Logger::instance()->info("Uninstalled plugin.");
 }
-
-register_activation_hook(__FILE__, 'activate_bibcite');
-register_deactivation_hook(__FILE__, 'deactivate_bibcite');
-register_uninstall_hook(__FILE__, 'uninstall_bibcite');
-add_action(BIBCITE_CLEAR_CACHE_ACTION, 'clear_cache_bibcite');
 
 /**
  * Begins execution of the plugin.
@@ -103,6 +102,10 @@ add_action(BIBCITE_CLEAR_CACHE_ACTION, 'clear_cache_bibcite');
  */
 function run_bibcite()
 {
+    register_activation_hook(__FILE__, 'activate_bibcite');
+    register_deactivation_hook(__FILE__, 'deactivate_bibcite');
+    register_uninstall_hook(__FILE__, 'uninstall_bibcite');
+    add_action(BIBCITE_CLEAR_CACHE_ACTION, 'clear_cache_bibcite');
 
     $plugin = new Bibcite\Common\Bibcite();
     $plugin->run();
