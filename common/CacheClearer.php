@@ -26,8 +26,8 @@ class CacheClearer
      */
     public static function clear_cache()
     {
-        \Bibcite\Common\Downloader::clear_cache();
-        \Bibcite\Common\CslLibrary::clear_cache();
+        \Bibcite\Common\CslLibrary::clear_cache();        
+        \Bibcite\Common\Transients::clear_cache();
     }
 
 }

@@ -33,6 +33,6 @@ class Uninstaller
         // method.
         \Bibcite\Admin\Admin::uninstall();
         \Bibcite\Common\CslLibrary::uninstall();
-        \Bibcite\Common\Downloader::uninstall();
+        \Bibcite\Common\Transients::uninstall();
     }
 }

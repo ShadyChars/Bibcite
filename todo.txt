@@ -6,7 +6,7 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
-* Performance - some entries not making it into the DB before they're used in the bibliography?
+* Are transients not being deleted?
 * Fix Latex characters in names and other strings (Converter?)
 * Remove extra braces in names and other strings
 * Admin improvements:
