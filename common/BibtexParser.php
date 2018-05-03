@@ -25,7 +25,7 @@ class BibtexParser
      */
     public static function parse_file_to_bibtex(string $filename): array
     {
-
+        $logger = new ScopedLogger(Logger::instance(), __METHOD__ ." - ");
         $start_parse_time = time();
 
         // Create and run a parser.
@@ -37,7 +37,7 @@ class BibtexParser
             $parser->parseFile($filename);
             $entries = $listener->export();
         } catch (Exception $e) {
-            Logger::instance()->error(
+            $logger->error(
                 "Failed to parse file (${filename}): " . $e->getMessage() . "."
             );
         }
@@ -45,7 +45,7 @@ class BibtexParser
         // Log and return results
         $parse_duration = time() - $start_parse_time;
         $entry_count = sizeof($entries);
-        Logger::instance()->debug(
+        $logger->debug(
             "Parsed ${entry_count} entries from ${filename} in ${parse_duration}s."
         );
 

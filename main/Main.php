@@ -63,19 +63,20 @@ class Main {
 	 * @param array|string $atts shortcode attributes, or the empty string
 	 * @param string $content shortcode content. Ignored.
 	 * @param string $tag shortcode name
-	 * @return string|null
+	 * @return string shortcode result
 	 */
 	public function do_bibtex_shortcode( 
 		$atts = [], string $content = null, string $tag = ''
-	) {
-
-		// Work out what post we're in.
+	) : string {
 		global $post;
-		$post_id = $post->ID;
+		$post_id = $post->ID;		
+		$logger = new \Bibcite\Common\ScopedLogger(
+			\Bibcite\Common\Logger::instance(), 
+			__METHOD__ ." - Post $post_id - "
+		);
 
-		\Bibcite\Common\Logger::instance()->debug(
-			"Encountered bibtex shortcode in post $post_id with attributes: " . 
-			var_export($atts, true)
+		$logger->debug(
+			"Encountered shortcode with attributes: " . var_export($atts, true)
 		);
 
 		// Parse attributes
@@ -91,13 +92,11 @@ class Main {
 		foreach (explode(",", $attributes[self::KEYS_ATTRIBUTE]) as $csl_key) {
 			$csl_json_object = $csl_library->get($csl_key);
 			if ($csl_json_object) {
-				\Bibcite\Common\Logger::instance()->debug(
-					"Found CSL library entry: " . $csl_key
-				);
+				$logger->debug("Found CSL library entry: " . $csl_key);
 				$csl_entries[] = $csl_json_object;
 			}
 			else
-				\Bibcite\Common\Logger::instance()->warn(
+				$logger->warning(
 					"Could not find CSL library entry: " . $csl_key
 				);
 		}
@@ -120,7 +119,7 @@ class Main {
 						return ($order == "asc") ? $cmp : -$cmp;
 					}
 					catch (Exception $e) {
-						\Bibcite\Common\Logger::instance()->warn(
+						$logger->warning(
 							"Could not sort on CSL attribute '$sort': " . 
 							$e->getMessage()
 						);
@@ -131,9 +130,8 @@ class Main {
 		}
 
 		// Render and return the bibliography.
-		\Bibcite\Common\Logger::instance()->info(
-			"Rendering keys " . $attributes[self::KEYS_ATTRIBUTE] . 
-			" for bibtex shortcode in post $post_id..."
+		$logger->info(
+			"Rendering keys " . $attributes[self::KEYS_ATTRIBUTE] . "..."
 		);
 		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
 			$csl_entries, 
@@ -160,22 +158,22 @@ class Main {
 		$atts = [], string $content = null, string $tag = ''
 	) : string  {
 
-		// Work out what post we're in.
 		global $post;
-		$post_id = $post->ID;
+		$post_id = $post->ID;		
+		$logger = new \Bibcite\Common\ScopedLogger(
+			\Bibcite\Common\Logger::instance(), 
+			__METHOD__ ." - Post $post_id - "
+        );
 
-		\Bibcite\Common\Logger::instance()->debug(
-			"Encountered bibcite shortcode in post $post_id with attributes: " . 
-			var_export($atts, true)
+		$logger->debug(
+			"Encountered shortcode with attributes: " . var_export($atts, true)
 		);
 		
 		// Do we already have an array of known keys for this post? If not, 
-		// create one.
+		// there's no enclosing [bibshow] shortcode.
 		if (!isset($this->post_id_to_bibshow_keys[$post_id])) {
-			$this->post_id_to_bibshow_keys[$post_id] = array();
-			\Bibcite\Common\Logger::instance()->debug(
-				"Creating new array of [key => rendered entry] for post ${post_id}"
-			);
+			$logger->warn("No enclosing [bibshow] shortcode. Skipping");
+			return "";
 		}
 
 		// Parse attributes
@@ -190,15 +188,14 @@ class Main {
 
 		// Do we need to do anything?
 		if (count($keys_for_shortcode) <= 0) {
-			\Bibcite\Common\Logger::instance()->warn(
-				"No keys found. Skipping bibcite shortcode."
-			);
+			$logger->warning("No keys found. Skipping shortcode.");
 			return "";
 		}
 
 		// If we're here, we need to render our notes. First, get the library.
-		$url = $attributes[self::URL_ATTRIBUTE];
-		$csl_library = self::get_or_update_csl_library($url);
+		$csl_library = self::get_or_update_csl_library(
+			$attributes[self::URL_ATTRIBUTE]
+		);
 
 		// For each key in this shortcode...		
 		$indexed_csl_values_to_render = array();
@@ -218,15 +215,14 @@ class Main {
 			// Did we fail to get a valid CSL entry for this key, for whatever 
 			// reason?
 			if (!isset($csl_json_entry) || $csl_json_entry == false) 
-				\Bibcite\Common\Logger::instance()->warn(
-					"Could not find CSL entry for key $csl_key in post $post_id. Skipping."
-				);		
+				$logger->warning(
+					"Could not find CSL entry for key $csl_key. Skipping."
+				);
 		}
 
 		// Done. Render the note(s).
-		\Bibcite\Common\Logger::instance()->info(
-			"Rendering keys " . $attributes[self::KEYS_ATTRIBUTE] . 
-			" for bibcite shortcode in post $post_id..."
+		$logger->info(
+			"Rendering keys " . $attributes[self::KEYS_ATTRIBUTE] . "..."
 		);
 		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
 			$indexed_csl_values_to_render, 
@@ -242,39 +238,43 @@ class Main {
 	 * the referenced citations.
 	 *
 	 * @param array|string $atts shortcode attributes, or the empty string
-	 * @param string $content shortcode content. Ignored.
+	 * @param string $content shortcode content. This is processed so as to 
+	 * catch any nested [bibcite] shortcodes.
 	 * @param string $tag the name of the shortcode
-	 * @return void
+	 * @return string shortcode result
 	 */
 	public function do_bibshow_shortcode( 
 		$atts = [], string $content = null, string $tag = '' 
-	) {
-
-		// Work out what post we're in.
+	) : string {
 		global $post;
-		$post_id = $post->ID;
+		$post_id = $post->ID;		
+		$logger = new \Bibcite\Common\ScopedLogger(
+			\Bibcite\Common\Logger::instance(), 
+			__METHOD__ ." - Post $post_id - "
+        );
 
-		\Bibcite\Common\Logger::instance()->debug(
-			"Encountered opening bibshow shortcode in post $post_id with attributes: " . 
+		$logger->debug(
+			"Encountered opening shortcode with attributes: " . 
 			var_export($atts, true)
 		);
+
+		// Initialise our list of keys for this post
+		$this->post_id_to_bibshow_keys[$post_id] = array();
 		
 		// Process the content of this shortcode, in case we encounter any other 
 		// shortcodes - in particular, we need to build a list of any [bibcite] 
 		// shortcodes that define the contents of this [bibshow] bibliography.
 		$processed_content = do_shortcode($content);
 
-		\Bibcite\Common\Logger::instance()->debug(
-			"Encountered closing bibshow shortcode in post $post_id with attributes: " . 
+		$logger->debug(
+			"Encountered closing shortcode with attributes: " . 
 			var_export($atts, true)
 		);
 		
 		// Do we have an array of [bibcite] entries for this post? If not, 
 		// nothing to do.
-		if (!array_key_exists($post_id, $this->post_id_to_bibshow_keys)) {
-			\Bibcite\Common\Logger::instance()->warn(
-				"No keys found for bibshow shortcode in post $post_id. Skipping."
-			);
+		if (sizeof($this->post_id_to_bibshow_keys[$post_id]) == 0) {
+			$logger->warning("No bibcite shortcodes found in post. Skipping.");
 			return $processed_content;
 		}
 
@@ -282,8 +282,9 @@ class Main {
 		$attributes = self::parse_shortcode_attributes($tag, $atts);
 
 		// Get or update the library for the source URL
-		$url = $attributes[self::URL_ATTRIBUTE];
-		$csl_library = self::get_or_update_csl_library($url);
+		$csl_library = self::get_or_update_csl_library(
+			$attributes[self::URL_ATTRIBUTE]
+		);
 		
 		// Find all relevant bibcite keys and place the associated CSL JSON 
 		// entries in an array. This will preserve the ordering and indexing of 
@@ -298,8 +299,8 @@ class Main {
 
 		// Render and return the bibliography.
 		$key_count = sizeof($keys_for_post);
-		\Bibcite\Common\Logger::instance()->debug(
-			"Rendering $key_count keys for closing bibshow shortcode in post $post_id..."
+		$logger->debug(
+			"Rendering $key_count keys for closing bibshow shortcode..."
 		);
 		$bibliography = 
 			\Bibcite\Common\CslRenderer::instance()->renderCslEntries(
@@ -381,6 +382,10 @@ class Main {
 		string $url
 	) : \Bibcite\Common\CslLibrary {
 
+		$logger = new \Bibcite\Common\ScopedLogger(
+			\Bibcite\Common\Logger::instance(), __METHOD__ ." - "
+        );
+
 		// Have we already created this library during this run? If so, just
 		// return it.
 		if (isset(self::$urls_to_csl_libraries[$url]))
@@ -402,17 +407,37 @@ class Main {
 			)
 		);
 
+		// TODO: there seems to be a problem here in that if a second request
+		// comes in while the first one is still running (and is still updating
+		// the DB, below), then the second request thinks that the CslLibrary
+		// is populated and ready to go. It thus uses a part-completed library
+		// rather than waiting for the first request to finish populating the
+		// library. 
+		//
+		//
+		// We'll need to do something like the following:
+		//
+		// 1. If the requested file has been downloaded recently, use the cached
+		//    version. If not, download it. (Should probably write to a GUID-
+		//    based filename and then delete after parsing so that we don't 
+		//    try to parse the same file in two different locations.)
+		// 2. If the requested (base) filename has been fully parsed into Bibtex 
+		//    recently, use the cached, parsed Bibtex entries. If not, parse it.
+		// 3. If the parsed Bibtex entries for the base filename have been fully 
+		//    converted to CSL and stored into the database, we're done. If not,
+		//    parse them.
+
 		// If the file has changed recently, download it. If not, just use our
 		// cached values.
 		if (!\Bibcite\Common\Downloader::save_url_to_file($url, $filename)) {
-			\Bibcite\Common\Logger::instance()->debug(
+			$logger->debug(
 				"No new Bibtex file retrieved from URL (${url}). Using cached database entries."
 			);
 			return $csl_library;
 		}
 
 		// We have some new data. Parse as Bibtex
-		\Bibcite\Common\Logger::instance()->info(
+		$logger->info(
 			"Retrieved up-to-date Bibtex file from URL (${url}). Parsing..."
 		);
 		$bibtex_entries = 
@@ -420,17 +445,18 @@ class Main {
 
 		// If we got any entries, update the corresponding library.
 		if (sizeof($bibtex_entries) <= 0) {
-			\Bibcite\Common\Logger::instance()->warn(
+			$logger->warning(
 				"No entries found in Bibtex file ($url). Using cached database entries."
 			);
 			return $csl_library;
 		}
 
 		// We have some entries to parse. Do so now.
-		\Bibcite\Common\Logger::instance()->debug(
+		$logger->debug(
 			"Updating CSL library ($url) with parsed Bibtex entries..."
 		);
-		$converter  = new Converter();
+
+		$converter = new Converter();		
 		foreach ($bibtex_entries as $bibtex_entry) {
 			try {
 
@@ -453,7 +479,7 @@ class Main {
 				);
 			}
 			catch (Exception $e) {
-				\Bibcite\Common\Logger::instance()->warn(
+				$logger->warning(
 					"Failed to convert and save Bibtex entry: " . 
 					$e->getMessage()
 				);

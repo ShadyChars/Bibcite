@@ -42,19 +42,19 @@ class Downloader
         string $url, string $filename, $force_download = false
     ) : bool {
 
-        // Include the filename in our DB prefixes to scope our data
+        $logger = new ScopedLogger(Logger::instance(), __METHOD__ ." - ");
+
+        // Include the filename hash in our DB prefixes to scope our data
         $slugify = new \Cocur\Slugify\Slugify();
         $transient_prefix_for_file = $slugify->slugify(
-            self::TRANSIENT_PREFIX . "_" . $filename . "_"
+            self::TRANSIENT_PREFIX . "_" . md5($filename) . "_"
         );
 
         // Get the last known ETag for this file, if any
         $etag_transient_name = $transient_prefix_for_file . "last-etag";
         $last_etag = 
             Transients::instance()->get_transient($etag_transient_name);
-        Logger::instance()->info(
-            "Last URL ETag: " . var_export($last_etag, true)
-        );
+        $logger->info("Last URL ETag: " . var_export($last_etag, true));
 
         // Get the last known download time for this file, if any
         $last_downloaded_time_transient_name = 
@@ -62,19 +62,19 @@ class Downloader
         $last_downloaded_time = Transients::instance()->get_transient(
             $last_downloaded_time_transient_name
         );
-        Logger::instance()->info(
+        $logger->info(
             "URL last downloaded: " . var_export($last_downloaded_time, true)
         );
 
         // If we know when we last downloaded this file, we may be able to skip 
         // a repeated download.
-        if (isset($last_downloaded_time) && !empty($last_downloaded_time)) {
+        if ($last_downloaded_time !== false) {
             if ($force_download) {
-                Logger::instance()->debug("Ignoring last download time.");
+                $logger->debug("Ignoring last download time.");
             } else if (
                 $last_downloaded_time >= (time() - self::HTTP_DORMANCY_SECONDS)
             ) {
-                Logger::instance()->debug(
+                $logger->debug(
                     "URL last downloaded within " .
                     self::HTTP_DORMANCY_SECONDS .
                     " seconds. Skipping update."
@@ -83,7 +83,7 @@ class Downloader
             }
         }
 
-        Logger::instance()->info(
+        $logger->info(
             "Getting URL (${url}) and saving to file (${filename})..."
         );
 
@@ -135,7 +135,7 @@ class Downloader
             // Only get the body of the resource if its ETag is different or if 
             // we're forcing a download.
             if (!$force_download && $last_etag) {
-                Logger::instance()->debug("Using ETag (${last_etag})");
+                $logger->debug("Using ETag (${last_etag})");
                 curl_setopt(
                     $ch, 
                     CURLOPT_HTTPHEADER, 
@@ -148,7 +148,7 @@ class Downloader
             curl_close($ch);
 
         } catch (Exception $e) {
-            Logger::instance()->error(
+            $logger->error(
                 "Failed to get URL (${url}): " . $e->getMessage() . "."
             );
             return false;
@@ -156,7 +156,7 @@ class Downloader
 
         // If there's an error, report as much info as possible and quit now.
         if ($curl_error) {
-            Logger::instance()->error(
+            $logger->error(
                 "Error getting URL: ${curl_error}. Skipping update."
             );
             return false;
@@ -164,29 +164,27 @@ class Downloader
 
         // The request succeeded. Update our ETag and our last GET datetime.
         $new_etag = isset($headers["etag"]) ? $headers["etag"][0] : null;
-        $new_download_time = time();
         Transients::instance()->set_transient(
             $etag_transient_name,
             $new_etag,
             self::TRANSIENT_EXPIRATION_SECONDS
         );
+        
+        $new_download_time = time();
         Transients::instance()->set_transient(
             $last_downloaded_time_transient_name,
             $new_download_time,
             self::TRANSIENT_EXPIRATION_SECONDS
         );
 
-        $last_updated_string = date(DATE_RFC850, $new_download_time);
-        Logger::instance()->debug(
-            "Writing Etag (${new_etag}) and download time (${new_download_time})."
+        $logger->debug(
+            "Writing Etag ($new_etag) and download time ($new_download_time)."
         );
 
         // Did we get a new copy of the resource? If not, nothing more to do.
         $file_mtime = filemtime($filename);
         if ($file_mtime && $file_mtime < $start_get_time) {
-            Logger::instance()->debug(
-                "Cached file has not changed. Using existing copy."
-            );
+            $logger->debug("Cached file has not changed. Using existing copy.");
             return false;
         }
 

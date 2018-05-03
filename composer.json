@@ -47,6 +47,7 @@
         "geissler/converter": "dev-master",
         "apache/log4php": "2.3.0",
 		"cocur/slugify": "^3.1",
-		"twig/twig": "^2.4"
+		"twig/twig": "^2.4",
+        "psr/log": "^1.0"
     }
 }

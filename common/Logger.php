@@ -6,13 +6,16 @@ require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
 
 /**
  * A singleton logging class.
+ * 
+ * Implementation based on 
+ * https://www.sitepoint.com/implementing-psr-3-with-log4php/.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
  * @link https://github.com/OrkneyDullard/Bibcite
  * @package Bibcite\Common
  * @since 1.0.0
  */
-class Logger
+class Logger implements \Psr\Log\LoggerInterface
 {
 	// Hold an instance of the class
 	private static $instance;
@@ -59,6 +62,142 @@ class Logger
 		return plugin_dir_path(dirname(__FILE__)) . "/logs/bibcite.log";
 	}
 
+	/**
+     * System is unusable.
+     *
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function emergency($message, array $context = array()) {
+		$this->log->fatal($this->interpolate($message, $context));
+	}
+
+    /**
+     * Action must be taken immediately.
+     *
+     * Example: Entire website down, database unavailable, etc. This should
+     * trigger the SMS alerts and wake you up.
+     *
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function alert($message, array $context = array()) {
+		$this->log->fatal($this->interpolate($message, $context));
+	}
+
+    /**
+     * Critical conditions.
+     *
+     * Example: Application component unavailable, unexpected exception.
+     *
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function critical($message, array $context = array()) {
+		$this->log->error($this->interpolate($message, $context));
+	}
+
+    /**
+     * Runtime errors that do not require immediate action but should typically
+     * be logged and monitored.
+     *
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function error($message, array $context = array()) {
+		$this->log->error($this->interpolate($message, $context));
+	}
+
+    /**
+     * Exceptional occurrences that are not errors.
+     *
+     * Example: Use of deprecated APIs, poor use of an API, undesirable things
+     * that are not necessarily wrong.
+     *
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function warning($message, array $context = array()) {
+		$this->log->warn($this->interpolate($message, $context));
+	}
+
+    /**
+     * Normal but significant events.
+     *
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function notice($message, array $context = array()) {
+		$this->log->info($this->interpolate($message, $context));
+	}
+
+    /**
+     * Interesting events.
+     *
+     * Example: User logs in, SQL logs.
+     *
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function info($message, array $context = array()) {
+		$this->log->info($this->interpolate($message, $context));
+	}
+
+    /**
+     * Detailed debug information.
+     *
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function debug($message, array $context = array()) {
+		$this->log->debug($this->interpolate($message, $context));
+	}
+
+    /**
+     * Logs with an arbitrary level.
+     *
+     * @param mixed  $level
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+	public function log($level, $message, array $context = array()) {
+		throw new Exception('Please call specific logging method');
+	}
+	
+	/**
+     * Interpolates context values into the message placeholders.
+     * Taken from PSR-3's example implementation.
+     */
+    protected function interpolate($message, array $context = array()) {
+        // build a replacement array with braces around the context
+        // keys
+        $replace = array();
+        foreach ($context as $key => $val) {
+            $replace['{' . $key . '}'] = $val;
+        }
+
+        // interpolate replacement values into the message and return
+        return strtr($message, $replace);
+    }
+
 	private function __construct() {
 
 		// Use an anonymous object 
@@ -73,7 +212,7 @@ class Logger
 					// A simple layout
 					$layout = new \LoggerLayoutPattern();
 					$layout->setConversionPattern(
-						"%date [%level] %msg%newline"
+						"%date [%level]\t%msg%newline"
 					);
 					$layout->activateOptions();
 							
@@ -96,53 +235,5 @@ class Logger
 		);
 
 		$this->log = \Logger::getLogger('bibcite');
-	}
-
-	/**
-	 * Log a message at debug level.
-	 *
-	 * @param string $message message to be logged
-	 * @return void
-	 * @author Keith Houston <keith@shadycharacters.co.uk>
-	 * @since 1.0.0
-	 */
-	public function debug(string $message) {
-		$this->log->debug($message);
-	}
-
-	/**
-	 * Log a message at info level.
-	 *
-	 * @param string $message message to be logged
-	 * @return void
-	 * @author Keith Houston <keith@shadycharacters.co.uk>
-	 * @since 1.0.0
-	 */
-	public function info(string $message) {
-		$this->log->info($message);
-	}
-
-	/**
-	 * Log a message at warning level.
-	 *
-	 * @param string $message message to be logged
-	 * @return void
-	 * @author Keith Houston <keith@shadycharacters.co.uk>
-	 * @since 1.0.0
-	 */
-	public function warn(string $message) {
-		$this->log->warn($message);
-	}
-
-	/**
-	 * Log a message at error level.
-	 *
-	 * @param string $message message to be logged
-	 * @return void
-	 * @author Keith Houston <keith@shadycharacters.co.uk>
-	 * @since 1.0.0
-	 */
-	public function error(string $message) {
-		$this->log->error($message);
 	}
 }

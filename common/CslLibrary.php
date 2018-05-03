@@ -45,12 +45,13 @@ class CslLibrary
     public function __construct(string $scope)
     {
         global $wpdb;
+        $logger = new ScopedLogger(Logger::instance(), __METHOD__ ." - ");
 
         // Record the requested scope, then create a DB-friendly, prefixed 
         // version of it.
         $this->scope = $scope;
         $this->table_name = $wpdb->prefix . BIBCITE_PREFIX . "_" . md5($scope);
-        Logger::instance()->debug(
+        $logger->debug(
             "Using table name '$this->table_name' for scope '$scope'"
         );
 
@@ -95,6 +96,8 @@ class CslLibrary
      */
     public static function uninstall() {
 
+        $logger = new ScopedLogger(Logger::instance(), __METHOD__ ." - ");
+
         // Clear our static caches.
         self::$scopes = array();
         self::$cached_keys_to_entries = array();
@@ -109,9 +112,7 @@ class CslLibrary
                 if (strncasecmp(
                     $table_name, $table_prefix, strlen($table_prefix)
                 ) == 0) {
-                    \Bibcite\Common\Logger::instance()->debug(
-                        "Dropping table: $table_name..."
-                    );
+                    $logger->debug("Dropping table: $table_name...");
                     $wpdb->query("DROP TABLE $table_name");
                 }
     }

@@ -155,6 +155,8 @@ class CslRenderer
 		string $twig_template_name
 	) : string {
 
+		$logger = new ScopedLogger(Logger::instance(), __METHOD__ ." - ");
+
 		// Load the style. Note that this may be a user-specified style.
 		$style = null;
 		if (in_array($csl_style_name, $this->user_csl_style_names)) {			
@@ -162,20 +164,16 @@ class CslRenderer
 				DIRECTORY_SEPARATOR, 
 				array($this->user_csl_styles_path, $csl_style_name . '.csl')
 			);
-			\Bibcite\Common\Logger::instance()->debug(
-				"Using custom style: $user_style_file"
-			);
+			$logger->debug("Using custom style: $user_style_file");
 			$style = file_get_contents($user_style_file);
 		} else if (in_array($csl_style_name, $this->csl_style_names)) {
-			\Bibcite\Common\Logger::instance()->debug(
-				"Using built-in style: $csl_style_name"
-			);
+			$logger->debug("Using built-in style: $csl_style_name");
 			$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet(
 				$csl_style_name
 			);
 		} else {
 			$csl_default_style = $this->csl_style_names[0];
-			\Bibcite\Common\Logger::instance()->warn(
+			$logger->warning(
 				"Unrecognised style: $csl_style_name. Defaulting to $csl_default_style."
 			);
 			$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet(
@@ -205,7 +203,7 @@ class CslRenderer
 					"entry" => $rendered_entry			// rendered citation
 				);
 			} catch (Exception $e) {
-				Logger::instance()->error(
+				$logger->error(
 					"Exception when rendering CSL: " . $e->getMessage()
 				);
 			}
@@ -219,12 +217,10 @@ class CslRenderer
 			array($this->twig_templates_path, $twig_template_name . '.twig')
 		);
 		if (in_array($twig_template_name, $this->twig_template_names)) {			
-			\Bibcite\Common\Logger::instance()->debug(
-				"Using custom template: $user_template_file"
-			);
+			$logger->debug("Using custom template: $user_template_file");
 			$loader = new \Twig_Loader_Filesystem($this->twig_templates_path);
 		} else {
-			\Bibcite\Common\Logger::instance()->warn(
+			$logger->warning(
 				"Unrecognised template: $user_template_file. Defaulting to built-in unordered list."
 			);
 			$twig_template_name = "built-in-unordered-list";
@@ -259,7 +255,7 @@ TWIG_DEFAULT_TEMPLATE
 				array('entries' => $rendered_entries)
 			);
 		} catch (Exception $e) {
-			Logger::instance()->error(
+			$logger->error(
 				"Exception when rendering CSL with template: " . $e->getMessage()
 			);
 			return "";

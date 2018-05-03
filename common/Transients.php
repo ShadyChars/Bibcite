@@ -94,11 +94,13 @@ class Transients
      */
     public static function uninstall() {
 
+		$logger = new ScopedLogger(Logger::instance(), __METHOD__ ." - ");
+
 		// Get all known transient names
 		$transient_names = get_option(self::OPTION_NAME, array());
 
 		foreach ($transient_names as $key => $transient_name) {
-			Logger::instance()->debug("Deleting transient: $transient_name...");
+			$logger->debug("Deleting transient: $transient_name...");
 			delete_transient($transient_name);
 		}
 
@@ -132,7 +134,8 @@ class Transients
 		$transient_names = get_option(self::OPTION_NAME, array());
 
 		if (!in_array($prefixed_transient_name, $transient_names)) {
-			Logger::instance()->debug(
+			$logger = new ScopedLogger(Logger::instance(), __METHOD__ ." - ");
+			$logger->debug(
 				"Recording new transient: $prefixed_transient_name..."
 			);
 			$transient_names[] = $prefixed_transient_name;

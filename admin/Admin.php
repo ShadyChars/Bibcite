@@ -101,6 +101,10 @@ class Admin
         $this->bibcite = $bibcite;
         $this->version = $version;
 
+        $logger = new \Bibcite\Common\ScopedLogger(
+            \Bibcite\Common\Logger::instance(), __CLASS__ . " - "
+        );
+
         // Ensure that our custom "cache-cleared" query arg is removed after
         // we've handled it.
         // TODO: this doesn't seem to stop the "Cache cleared" admin notice 
@@ -116,8 +120,8 @@ class Admin
         // Handle custom POST messages by firing our custom 'clear_cache' hook.
         add_action(
             "admin_post_" . self::CLEAR_CACHE_ACTION,
-            function () {
-                \Bibcite\Common\Logger::instance()->debug(
+            function () use ($logger) {
+                $logger->debug(
                     "Received custom " . self::CLEAR_CACHE_ACTION . " action"
                 );
 
