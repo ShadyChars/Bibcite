@@ -6,7 +6,7 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
-* Are transients not being deleted?
+* Add session to logging and test performance
 * Fix Latex characters in names and other strings (Converter?)
 * Remove extra braces in names and other strings
 * Admin improvements:

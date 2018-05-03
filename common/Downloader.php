@@ -5,8 +5,10 @@ namespace Bibcite\Common;
 require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
 
 /**
- * A static class used to download URLs and cache them to specified disk 
- * locations.
+ * A static class used to download URLs and return their values.
+ * 
+ * Where possible, recently-downloaded URLs may be skipped in favour of cached
+ * values.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
  * @link https://github.com/OrkneyDullard/Bibcite
@@ -25,40 +27,44 @@ class Downloader
     private const TRANSIENT_PREFIX = __CLASS__;
     
     /**
-     * Retrieve a specified URL to a specified file. Where possible, HTTP 
-     * requests and/or data downloads are minimised.
+     * Retrieve a specified URL.
      *
      * @param string $url URL to retrieve
-     * @param string $filename filename to receive the retrieved URL
      * @param boolean $force_download should we always retrieve the complete 
      * file? If false, a cached or otherwise unchanged version may be used.
-     * @return boolean true if a new version of the file was cached and false
-     * otherwise
+     * @return string contents of the requested URL
      * 
      * @author Keith Houston <keith@shadycharacters.co.uk>
      * @since 1.0.0
      */
-    public static function save_url_to_file(
-        string $url, string $filename, $force_download = false
-    ) : bool {
+    public static function get_url(
+        string $url, $force_download = false
+    ) : string {
 
-        $logger = new ScopedLogger(Logger::instance(), __METHOD__ ." - ");
+        // Include the target URL in our scoped logging messages.
+        $logger = new ScopedLogger(
+            Logger::instance(), __METHOD__ ." - $url - "
+        );
 
         // Include the filename hash in our DB prefixes to scope our data
         $slugify = new \Cocur\Slugify\Slugify();
-        $transient_prefix_for_file = $slugify->slugify(
-            self::TRANSIENT_PREFIX . "_" . md5($filename) . "_"
+        $transient_prefix_for_url = $slugify->slugify(
+            self::TRANSIENT_PREFIX . "_" . md5($url) . "_"
         );
 
+        // Compute the name of the cached URL.
+        $request_body_transient_name = 
+            $transient_prefix_for_url . "request-body";
+
         // Get the last known ETag for this file, if any
-        $etag_transient_name = $transient_prefix_for_file . "last-etag";
+        $etag_transient_name = $transient_prefix_for_url . "last-etag";
         $last_etag = 
             Transients::instance()->get_transient($etag_transient_name);
         $logger->info("Last URL ETag: " . var_export($last_etag, true));
 
         // Get the last known download time for this file, if any
         $last_downloaded_time_transient_name = 
-            $transient_prefix_for_file . "last-downloaded-time";
+            $transient_prefix_for_url . "last-downloaded-time";
         $last_downloaded_time = Transients::instance()->get_transient(
             $last_downloaded_time_transient_name
         );
@@ -67,44 +73,38 @@ class Downloader
         );
 
         // If we know when we last downloaded this file, we may be able to skip 
-        // a repeated download.
+        // a repeated download and return the cached value.
         if ($last_downloaded_time !== false) {
             if ($force_download) {
-                $logger->debug("Ignoring last download time.");
+                $logger->debug("Forcing a new download.");
             } else if (
                 $last_downloaded_time >= (time() - self::HTTP_DORMANCY_SECONDS)
             ) {
                 $logger->debug(
                     "URL last downloaded within " .
                     self::HTTP_DORMANCY_SECONDS .
-                    " seconds. Skipping update."
+                    " seconds. Returning cached request body."
                 );
-                return false;
+                return Transients::instance()->get_transient(
+                    $request_body_transient_name
+                );
             }
         }
 
-        $logger->info(
-            "Getting URL (${url}) and saving to file (${filename})..."
-        );
+        $logger->info("Getting URL...");
 
         // Get the resource, but only if it has an ETag different from the last 
         // one we saw.
         $headers = [];
+        $body = [];
         $curl_error = null;
         $start_get_time = time();
         try {
 
-            // If the target directory doesn't exist, create it.
-            $dirname = dirname($filename);
-            if (!is_dir($dirname)) {
-                mkdir($dirname);
-            }
-
             // Write to file; follow redirection; and ignore SSL certs.
-            $fp = fopen($filename, 'w');
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_FILE, $fp);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
@@ -134,32 +134,38 @@ class Downloader
 
             // Only get the body of the resource if its ETag is different or if 
             // we're forcing a download.
-            if (!$force_download && $last_etag) {
-                $logger->debug("Using ETag (${last_etag})");
+            if (!$force_download && isset($last_etag)) {
+                $logger->debug("Using ETag in request: $last_etag");
                 curl_setopt(
                     $ch, 
                     CURLOPT_HTTPHEADER, 
-                    array("If-None-Match: ${last_etag}")
+                    array("If-None-Match: $last_etag")
                 );
             }
 
-            curl_exec($ch);
+            // Execute the request, saving the body and any errors.
+            $body = curl_exec($ch);
             $curl_error = curl_error($ch);
             curl_close($ch);
 
         } catch (Exception $e) {
             $logger->error(
-                "Failed to get URL (${url}): " . $e->getMessage() . "."
+                "Caught exception when retrieving URL: " . $e->getMessage() . 
+                ". Returning cached value."
             );
-            return false;
+            return Transients::instance()->get_transient(
+                $request_body_transient_name
+            );
         }
 
         // If there's an error, report as much info as possible and quit now.
         if ($curl_error) {
             $logger->error(
-                "Error getting URL: ${curl_error}. Skipping update."
+                "Error retrieving URL: ${curl_error}. Returning cached value."
             );
-            return false;
+            return Transients::instance()->get_transient(
+                $request_body_transient_name
+            );
         }
 
         // The request succeeded. Update our ETag and our last GET datetime.
@@ -182,13 +188,22 @@ class Downloader
         );
 
         // Did we get a new copy of the resource? If not, nothing more to do.
-        $file_mtime = filemtime($filename);
-        if ($file_mtime && $file_mtime < $start_get_time) {
-            $logger->debug("Cached file has not changed. Using existing copy.");
-            return false;
+        if (sizeof($body) == 0) {
+            $logger->debug(
+                "Downloaded body has not changed. Returning cached value."
+            );
+            return Transients::instance()->get_transient(
+                $request_body_transient_name
+            );
         }
 
-        // Done.
-        return true;
+        // Done. Record and return the new value of the body.
+        Transients::instance()->set_transient(
+            $request_body_transient_name, 
+            $body, 
+            self::TRANSIENT_EXPIRATION_SECONDS
+        );
+
+        return $body;
     }
 }

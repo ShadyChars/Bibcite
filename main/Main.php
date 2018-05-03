@@ -30,6 +30,9 @@ class Main {
 	private const SORT_ATTRIBUTE = "sort";
 	private const ORDER_ATTRIBUTE = "order";
 
+	// How long should our transients live (= 30 days)?
+	private const TRANSIENT_EXPIRATION_SECONDS = 3600*24*30;
+
 	// The ID of this plugin.
 	private $bibcite;
 
@@ -382,110 +385,93 @@ class Main {
 		string $url
 	) : \Bibcite\Common\CslLibrary {
 
+		// Include the target URL in our scoped logging messages.
 		$logger = new \Bibcite\Common\ScopedLogger(
-			\Bibcite\Common\Logger::instance(), __METHOD__ ." - "
+			\Bibcite\Common\Logger::instance(), __METHOD__ ." - $url - "
         );
 
 		// Have we already created this library during this run? If so, just
 		// return it.
-		if (isset(self::$urls_to_csl_libraries[$url]))
+		if (isset(self::$urls_to_csl_libraries[$url])) {
+			$logger->debug("Using existing CslLibrary");
 			return self::$urls_to_csl_libraries[$url];
+		}
 
-		// If not, we need to get and record a new CslLibrary for this URL and
-		// work out if it needs to be populated.
+		// If not, we need to get and record a new CslLibrary for this URL.
 		$csl_library = new \Bibcite\Common\CslLibrary($url);
 		self::$urls_to_csl_libraries[$url] = $csl_library;
 		
-		// Work out the target local filename
+		// Create a prefix for transients created in this method.
 		$slugify = new \Cocur\Slugify\Slugify();
-		$filename = implode( 
-			DIRECTORY_SEPARATOR, 
-			array( 
-				plugin_dir_path(dirname(__FILE__)), 
-				BIBCITE_CACHE_DIRECTORY, 
-				$slugify->slugify($url)
-			)
+		$transient_prefix_for_url = $slugify->slugify(
+			__METHOD__ . "_" . md5($url) . "_"
 		);
-
-		// TODO: there seems to be a problem here in that if a second request
-		// comes in while the first one is still running (and is still updating
-		// the DB, below), then the second request thinks that the CslLibrary
-		// is populated and ready to go. It thus uses a part-completed library
-		// rather than waiting for the first request to finish populating the
-		// library. 
-		//
-		//
-		// We'll need to do something like the following:
-		//
-		// 1. If the requested file has been downloaded recently, use the cached
-		//    version. If not, download it. (Should probably write to a GUID-
-		//    based filename and then delete after parsing so that we don't 
-		//    try to parse the same file in two different locations.)
-		// 2. If the requested (base) filename has been fully parsed into Bibtex 
-		//    recently, use the cached, parsed Bibtex entries. If not, parse it.
-		// 3. If the parsed Bibtex entries for the base filename have been fully 
-		//    converted to CSL and stored into the database, we're done. If not,
-		//    parse them.
-
-		// If the file has changed recently, download it. If not, just use our
-		// cached values.
-		if (!\Bibcite\Common\Downloader::save_url_to_file($url, $filename)) {
-			$logger->debug(
-				"No new Bibtex file retrieved from URL (${url}). Using cached database entries."
-			);
-			return $csl_library;
-		}
-
-		// We have some new data. Parse as Bibtex
-		$logger->info(
-			"Retrieved up-to-date Bibtex file from URL (${url}). Parsing..."
-		);
-		$bibtex_entries = 
-			\Bibcite\Common\BibtexParser::parse_file_to_bibtex($filename);
-
-		// If we got any entries, update the corresponding library.
-		if (sizeof($bibtex_entries) <= 0) {
-			$logger->warning(
-				"No entries found in Bibtex file ($url). Using cached database entries."
-			);
-			return $csl_library;
-		}
-
-		// We have some entries to parse. Do so now.
-		$logger->debug(
-			"Updating CSL library ($url) with parsed Bibtex entries..."
-		);
-
-		$converter = new Converter();		
-		foreach ($bibtex_entries as $bibtex_entry) {
-			try {
-
-				// Convert Bibtex to CSL String, then to a CSL JSON object.
-				$csl_json_string = $converter->convert(
-					new BibTeX($bibtex_entry["_original"]), new CSL()
-				);
-				$csl_json_object = json_decode($csl_json_string)[0];
-
-				// Remove any spurious braces - CSL takes care of capitalisation 
-				// itself.
-				if (isset($csl_json_object->{'title'}))
-					$csl_json_object->{'title'} = \str_replace(
-						array("{", "}"), "", $csl_json_object->{'title'}
-					);
-
-				// Save the CSL JSON object in our library.
-				$csl_library->add_or_update(
-					$bibtex_entry["citation-key"], $csl_json_object
-				);
-			}
-			catch (Exception $e) {
-				$logger->warning(
-					"Failed to convert and save Bibtex entry: " . 
-					$e->getMessage()
-				);
-			}
-		}
 		
+		// Download (or get a cached version of the Bibtex library).
+		$bibtex_library_body = \Bibcite\Common\Downloader::get_url($url);
+
+		// Has the library changed since we last parsed it? If so, we need to 
+		// parse it. If not, skip the parsing stage.
+		$bibtex_library_hash = md5($bibtex_library_body);
+		$bibtex_library_hash_transient_name = 
+			$transient_prefix_for_url . "bibtex-library-hash";
+		$bibtex_library_hash_previous = 
+			\Bibcite\Common\Transients::instance()->get_transient(
+				$bibtex_library_hash_transient_name
+			);
+		
+		if ($bibtex_library_hash != $bibtex_library_hash_previous)
+		{
+			$logger->debug(
+				"The Bibtex library has changed (old #: " .
+				"$bibtex_library_hash_previous; new #: " .
+				"$bibtex_library_hash). Parsing..."
+			);
+
+			// Parse the library to an array of Bibtex entries.
+			$bibtex_entries = 
+				\Bibcite\Common\BibtexParser::parse_string_to_bibtex(
+					$bibtex_library_body
+				);
+
+				// Convert to CSL and record in our CslLibrary.
+			$converter = new Converter();		
+			foreach ($bibtex_entries as $bibtex_entry) {
+				try {
+
+					// Convert Bibtex to CSL String, then to a CSL JSON object.
+					$csl_json_string = $converter->convert(
+						new BibTeX($bibtex_entry["_original"]), new CSL()
+					);
+					$csl_json_object = json_decode($csl_json_string)[0];
+
+					// Remove any spurious braces.
+					if (isset($csl_json_object->{'title'}))
+						$csl_json_object->{'title'} = \str_replace(
+							array("{", "}"), "", $csl_json_object->{'title'}
+						);
+
+					// Save the CSL JSON object in our library.
+					$csl_library->add_or_update(
+						$bibtex_entry["citation-key"], $csl_json_object
+					);
+				}
+				catch (Exception $e) {
+					$logger->warning(
+						"Failed to convert and save Bibtex entry: " . 
+						$e->getMessage()
+					);
+				}
+			}
+
+			// Record the hash of the newly-parsed URL.
+			\Bibcite\Common\Transients::instance()->set_transient(
+				$bibtex_library_hash_transient_name, 
+				$bibtex_library_hash,
+				self::TRANSIENT_EXPIRATION_SECONDS
+			);
+		}
+				
 		// Done.
 		return $csl_library;
 	} 
