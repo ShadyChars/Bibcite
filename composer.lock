@@ -127,12 +127,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/OrkneyDullard/converter.git",
-                "reference": "81c38b887febef2ece09e76a46e7e9076a3d28e8"
+                "reference": "e32b690b98f40da9208c6f86ec8f882233757a8d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/81c38b887febef2ece09e76a46e7e9076a3d28e8",
-                "reference": "81c38b887febef2ece09e76a46e7e9076a3d28e8",
+                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/e32b690b98f40da9208c6f86ec8f882233757a8d",
+                "reference": "e32b690b98f40da9208c6f86ec8f882233757a8d",
                 "shasum": ""
             },
             "require": {
@@ -176,7 +176,7 @@
             "support": {
                 "source": "https://github.com/OrkneyDullard/converter/tree/master"
             },
-            "time": "2018-05-10T16:17:45+00:00"
+            "time": "2018-05-10T21:26:18+00:00"
         },
         {
             "name": "myclabs/php-enum",
