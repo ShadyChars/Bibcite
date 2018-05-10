@@ -5,7 +5,7 @@ namespace Bibcite\Common;
 require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
 
 /**
- * A static class used to download URLs and return their values.
+ * A static class used to download HTTP URLs and return their bodies.
  * 
  * Where possible, recently-downloaded URLs may be skipped in favour of cached
  * values.
@@ -188,7 +188,7 @@ class Downloader
         );
 
         // Did we get a new copy of the resource? If not, nothing more to do.
-        if (sizeof($body) == 0) {
+        if (!isset($body) || empty($body)) {
             $logger->debug(
                 "Downloaded body has not changed. Returning cached value."
             );

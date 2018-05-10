@@ -444,13 +444,7 @@ class Main {
 						new BibTeX($bibtex_entry["_original"]), new CSL()
 					);
 					$csl_json_object = json_decode($csl_json_string)[0];
-
-					// Remove any spurious braces.
-					if (isset($csl_json_object->{'title'}))
-						$csl_json_object->{'title'} = \str_replace(
-							array("{", "}"), "", $csl_json_object->{'title'}
-						);
-
+					
 					// Save the CSL JSON object in our library.
 					$csl_library->add_or_update(
 						$bibtex_entry["citation-key"], $csl_json_object

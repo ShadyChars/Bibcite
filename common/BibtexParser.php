@@ -15,8 +15,8 @@ require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
 class BibtexParser
 {
     /**
-     * Parse a local file into an array of strings containing individual Bibtex 
-     * entries.
+     * Parse a string describin a Bibtex library into an array of associative
+     * arrays, each one of which contains a single parsed Bibtex entry.
      *
      * @param string $str a Bibtex library as a string
      * @return array an array of associative arrays, where each associative 

@@ -127,12 +127,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/OrkneyDullard/converter.git",
-                "reference": "e82a770729574ea5beda2009fb21fec0cfc4b9c1"
+                "reference": "81c38b887febef2ece09e76a46e7e9076a3d28e8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/e82a770729574ea5beda2009fb21fec0cfc4b9c1",
-                "reference": "e82a770729574ea5beda2009fb21fec0cfc4b9c1",
+                "url": "https://api.github.com/repos/OrkneyDullard/converter/zipball/81c38b887febef2ece09e76a46e7e9076a3d28e8",
+                "reference": "81c38b887febef2ece09e76a46e7e9076a3d28e8",
                 "shasum": ""
             },
             "require": {
@@ -176,24 +176,24 @@
             "support": {
                 "source": "https://github.com/OrkneyDullard/converter/tree/master"
             },
-            "time": "2018-04-30T19:55:56+00:00"
+            "time": "2018-05-10T16:17:45+00:00"
         },
         {
             "name": "myclabs/php-enum",
-            "version": "1.5.2",
+            "version": "1.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/php-enum.git",
-                "reference": "3ed7088cfd0a0e06534b7f8b0eee82acea574fac"
+                "reference": "8c5649e4ed99acd53a40eada270154dcac089f7e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/php-enum/zipball/3ed7088cfd0a0e06534b7f8b0eee82acea574fac",
-                "reference": "3ed7088cfd0a0e06534b7f8b0eee82acea574fac",
+                "url": "https://api.github.com/repos/myclabs/php-enum/zipball/8c5649e4ed99acd53a40eada270154dcac089f7e",
+                "reference": "8c5649e4ed99acd53a40eada270154dcac089f7e",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3"
+                "php": ">=5.4"
             },
             "require-dev": {
                 "phpunit/phpunit": "^4.8.35|^5.7|^6.0",
@@ -220,7 +220,7 @@
             "keywords": [
                 "enum"
             ],
-            "time": "2017-06-28T16:24:08+00:00"
+            "time": "2018-05-09T08:09:15+00:00"
         },
         {
             "name": "psr/log",
@@ -373,21 +373,21 @@
         },
         {
             "name": "seboettg/collection",
-            "version": "v1.2.0",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/seboettg/Collection.git",
-                "reference": "c77456c8d6a6685994bb475f82faff8ab1c20f4f"
+                "reference": "de091827b3f5eaecce110b6d3551e56de4ea03bd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/seboettg/Collection/zipball/c77456c8d6a6685994bb475f82faff8ab1c20f4f",
-                "reference": "c77456c8d6a6685994bb475f82faff8ab1c20f4f",
+                "url": "https://api.github.com/repos/seboettg/Collection/zipball/de091827b3f5eaecce110b6d3551e56de4ea03bd",
+                "reference": "de091827b3f5eaecce110b6d3551e56de4ea03bd",
                 "shasum": ""
             },
             "require-dev": {
                 "phpunit/phpunit": "^6.2",
-                "satooshi/php-coveralls": "dev-master"
+                "satooshi/php-coveralls": "^v2.0"
             },
             "type": "library",
             "autoload": {
@@ -406,7 +406,7 @@
                 }
             ],
             "description": "Simple PHP ArrayList collection",
-            "time": "2017-07-27T09:41:47+00:00"
+            "time": "2018-05-09T16:00:46+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
