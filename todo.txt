@@ -6,19 +6,22 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
-* Admin improvements:
-	* Add "Cleared cache" status message - IN PROGRESS
-	* If there's a default bibliography available, let the user render one of the entries
-	* Test the specified library URL
-	* Add a link to a local documentation file?
-	* Don't install if < PHP v7.1 available
-* Update readme.md (and/or readme.txt?)
-	* How to build
-	* How to deploy
 * Update readme.txt
 	* Shortcodes and attributes
 	* CSL styles and templating
 		* All entries retrieved from the source library are rendered individually as citations, then composed into a list using a Twig template.
+* Install composer globally and remove composer.phar
+* Test ordering of sort attributes
 * Remove this file
 * Publish to Github!
-* Tag at 1.0.0
+	* Set up 2fa
+	* Create top-level ShadyChars namespace & fix constants?
+	* Push Bibcite to Github/ShadyChars
+	* Tag at 1.0.0
+* Admin improvements:
+	* If there's a default bibliography available, let the user preview a rendered entry?
+	* Test the specified library URL
+	* Add a link to a local documentation file?
+
+* Known issues
+	* "Cleared cache" admin message reappears after saving Bibcite settings

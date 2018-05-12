@@ -1,114 +1,73 @@
 === Bibcite ===
-Contributors: https://github.com/OrkneyDullard/
-Donate link: https://github.com/OrkneyDullard/Bibcite/
-Tags: references, bibtex, CSL, citations
-Requires at least: 3.0.1
-Tested up to: 3.4
-Stable tag: 4.3
+Contributors: https://github.com/ShadyChars/
+Donate link: https://github.com/ShadyChars/Bibcite/
+Tags: references, bibtex, CSL, RIS, citations
+Requires at least: 3.1.0
+Tested up to: 4.9.5
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Here is a short description of the plugin.  This should be no more than 150 characters.  No markup here.
+Bibcite helps add and format scholarly references. It support Bibtex input files and uses CSL to format notes, references and bibliographies.
 
 == Description ==
 
-This is the long description.  No limit, and you can use Markdown (as well as in the following sections).
+Bibcite consumes online Bibtex files to give you access to scholarly references within your posts and pages. It allows you insert standalone bibliographies via the `[bibtex]` shortcode, and to insert notes and a corresponding bibliography with the `[bibshow]...[/bibshow]` and `[bibcite]` shortcodes. 
 
-For backwards compatibility, if this section is missing, the full length of the short description will be used, and
-Markdown parsed.
+Source reference data is parsed from [Bibtex](http://bibtex.org) files available at URLs specified via shortcode (e.g. `[bibtex file=http://example.com/my-library.bib]`). Where a shortcode does not specify a library, a default library location can be set.
 
-A few notes about the sections above:
-
-*   "Contributors" is a comma separated list of wp.org/wp-plugins.org usernames
-*   "Tags" is a comma separated list of tags that apply to the plugin
-*   "Requires at least" is the lowest version that the plugin will work on
-*   "Tested up to" is the highest version that you've *successfully used to test the plugin*. Note that it might work on
-higher versions... this is just the highest one you've verified.
-*   Stable tag should indicate the Subversion "tag" of the latest stable version, or "trunk," if you use `/trunk/` for
-stable.
-
-    Note that the `readme.txt` of the stable tag is the one that is considered the defining one for the plugin, so
-if the `/trunk/readme.txt` file says that the stable tag is `4.3`, then it is `/tags/4.3/readme.txt` that'll be used
-for displaying information about the plugin.  In this situation, the only thing considered from the trunk `readme.txt`
-is the stable tag pointer.  Thus, if you develop in trunk, you can update the trunk `readme.txt` to reflect changes in
-your in-development version, without having that information incorrectly disclosed about the current stable version
-that lacks those changes -- as long as the trunk's `readme.txt` points to the correct stable tag.
-
-    If no stable tag is provided, it is assumed that trunk is stable, but you should specify "trunk" if that's where
-you put the stable version, in order to eliminate any doubt.
+Individual references are transformed into HTML using a specified [Citation Style Language](http://citationstyles.org/) (<abbr title="Citation Style Language">CSL</abbr>) style, and are then collected into groups for display using a specified [Twig](https://twig.symfony.com/) template. Again, styles and templates can be specified via shortcode or, if omitted, will be replaced by default values.
 
 == Installation ==
 
 This section describes how to install the plugin and get it working.
 
-e.g.
+=== Building ===
 
-1. Upload `bibcite-sc.php` to the `/wp-content/plugins/` directory
+Bibcite is not yet available in a ready-to-install form. To obtain and build a copy:
+
+1. Ensure you have installed PHP 7.0 or above
+1. Clone or download this repository
+1. Run `php composer install` to install all dependencies. If you do not have [Composer](https://getcomposer.org/) installed already, you must first install it either [locally or globally](https://getcomposer.org/doc/00-intro.md) as desired. 
+
+=== Deploying === 
+
+Having obtained and built the plugin:
+
+1. Upload the contents of the local `bibcite` folder to a new `/wp-content/plugins/bibcite` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('bibcite_hook'); ?>` in your templates
+1. Configure default values via 'Settings' &rarr; 'Bibcite'
 
-== Frequently Asked Questions ==
+== Usage == 
 
-= A question that someone might have =
+=== Standalone Bibliographies ===
 
-An answer to that question.
+=== Notes and Citations ===
 
-= What about foo bar? =
+=== Advanced ===
 
-Answer to foo bar dilemma.
+TK
+
+* Cache clearing
+* Log files
 
 == Screenshots ==
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
+To come.
+
+== Known Issues == 
+
+* Only BibTeX
 
 == Changelog ==
 
 = 1.0 =
-* A change since the previous version.
-* Another change.
+First version.
 
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
+== Acknowledgements == 
 
-== Upgrade Notice ==
+Bibcite is inspired by ...
 
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
+Bibcite uses the following libraries:
 
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
-
-== Arbitrary section ==
-
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
-
-== A brief Markdown Example ==
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
-
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
-
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
-
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-`<?php code(); // goes in backticks ?>`
+* ...

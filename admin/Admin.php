@@ -112,7 +112,7 @@ class Admin
         add_filter(
             'removable_query_args', 
             function($args) {
-                array_push($args, self::CLEARED_CACHE_QUERY_ARG);
+                $args[] = self::CLEARED_CACHE_QUERY_ARG;
                 return $args;
             }
         );
