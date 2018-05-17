@@ -1,16 +1,16 @@
-=== Bibcite ===
-Contributors: https://github.com/ShadyChars/
-Donate link: https://github.com/ShadyChars/Bibcite/
-Tags: references, bibtex, CSL, RIS, citations
-Requires at least: 3.1.0
-Tested up to: 4.9.5
-Stable tag: 1.0.0
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+# Bibcite
+* Contributors: https://github.com/ShadyChars/
+* Donate link: https://github.com/ShadyChars/Bibcite/
+* Tags: references, bibtex, CSL, RIS, citations
+* Requires at least: 3.1.0
+* Tested up to: 4.9.5
+* Stable tag: 1.0.0
+* License: GPLv2 or later
+* License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Bibcite adds and formats scholarly references in WordPress content. It supports Bibtex input files and formats their contents using <abbr>CSL</abbr>.
 
-== Description ==
+## Description
 
 Bibcite consumes online BibTeX files to give you access to scholarly references within your posts and pages. It allows you insert standalone bibliographies via the `[bibtex]` shortcode, and to insert notes and a corresponding bibliography with the `[bibshow]...[/bibshow]` and `[bibcite]` shortcodes.
 
@@ -18,7 +18,7 @@ Source reference data is parsed from [BibTeX](http://bibtex.org) files available
 
 Individual references are transformed into <abbr>HTML</abbr> using a specified [Citation Style Language](http://citationstyles.org/) (<abbr title="Citation Style Language">CSL</abbr>) style, and are then collected into groups for display using a specified [Twig](https://twig.symfony.com/) template (e.g. `[bibtex style=ieee style=my-ordered-list]`). Again, styles and templates can be specified via shortcode or, if omitted, will be replaced by default values.
 
-== Acknowledgements ==
+## Acknowledgements
 
 Bibcite is inspired by and shares a number of concepts with Benjamin Piwowarski's [Papercite plugin](http://www.bpiwowar.net/wp-content/plugins/papercite/documentation/). It is built on Devin Vinson's [WordPress Plugin Boilerplate](http://wppb.io/). Thank you both!
 
@@ -33,11 +33,11 @@ Thanks also to the authors and maintainers of the following projects:
 * [seboettg/citeproc-php](https://github.com/seboettg/citeproc-php)
 * [Twig](https://twig.symfony.com)
 
-== Installation ==
+## Installation
 
 This section describes how to install the plugin and get it working.
 
-= Build =
+### Build
 
 Bibcite is not yet available in a ready-to-install form. To obtain and build a copy:
 
@@ -45,7 +45,7 @@ Bibcite is not yet available in a ready-to-install form. To obtain and build a c
 1. Clone or download this repository
 1. Run `composer install` to retrieve all dependencies. If you do not have [Composer](https://getcomposer.org/) already, you may install it either [locally or globally](https://getcomposer.org/doc/00-intro.md) as desired.
 
-= Deploy =
+### Deploy
 
 Having obtained and built the plugin:
 
@@ -53,13 +53,13 @@ Having obtained and built the plugin:
 1. Activate the plugin through the WordPress 'Plugins' menu
 1. Configure default values via 'Settings' &rarr; 'Bibcite'
 
-== Usage ==
+## Usage
 
 Bibcite allows you to insert standalone bibliographies and/or notes and citation into WordPress posts and pages. Citations are loaded from a specified BibTeX file before being formatted using either a built-in or custom <abbr>CSL</abbr> style file and then assembled into a note or bibliography using a built-in or custom Twig template.
 
 Note that where practicable, shortcode and attribute usage mirror those of Benjamin Piwowarski's [Papercite plugin](http://www.bpiwowar.net/wp-content/plugins/papercite/documentation/).
 
-= Standalone Bibliographies =
+### Standalone Bibliographies
 
 A standalone bibliography is added by the non-enclosing `[bibtex]` shortcode. The shortcode's attributes are processed to discover the content and style of the bibliograpy before being rendered into <abbr>HTML</abbr>. The shortcode accepts the following attributes:
 
@@ -72,7 +72,7 @@ A standalone bibliography is added by the non-enclosing `[bibtex]` shortcode. Th
 | `sort` | If present, the name of a <abbr>CSL</abbr> schema value by which to sort all bibliography entries. | `sort=title`<br/>`sort=author`<br/>`sort=issued` |
 | `order`  | If present, selects either `asc`ending or `desc`ending sort order. If no `sort` attribute is present, this has no effect.  | `order=asc`<br/>`order=desc` |
 
-= Notes and Citations =
+### Notes and Citations
 
 To create a bibliography from citations made within the text of a post or page, use the enclosing `[bibshow]`...`[/bibshow]` along with the non-enclosing `[bibcite]` shortcodes. The opening and closing `[bibshow]` shortcodes "capture" all citations made within them using `[bibcite]` shortcodes, and, having done so, generate and emit the resulting bibliography at the location of the closing `[/bibshow]` shortcode.
 
@@ -118,7 +118,7 @@ Note that `Reference1` appears only once in the generated bibliography.
 
 The exact appearance of the generated notes and citations is dependent on the selected <abbr>CSL</abbr> styles and Twig templates for the `[bibcite]` and `[bibshow]` shortcodes. See the next section for details.
 
-= Styles, Templates and the Rendering Process =
+### Styles, Templates and the Rendering Process
 
 All three support shortcodes apply the same rendering process:
 
@@ -158,7 +158,7 @@ A simple Twig template to render `$entries` as a bibliography might look like th
 </dl>
 ```
 
-= Custom styles and templates =
+### Custom styles and templates
 
 Bibcite has a large number of built-in <abbr>CSL</abbr> styles, all taken from the [official repository of <abbr>CSL</abbr> styles](https://github.com/citation-style-language/styles/). These are available via autocomplete from the 'Settings' page. Additionally, Bibcite comes with a limited set of Twig templates:
 
@@ -169,14 +169,14 @@ Again, these are available via autocomplete from the 'Settings' page.
 
 However, it is possible to add both user-defined <abbr>CSL</abbr> styles and Twig templates. Styles (with the extension `.csl`) should be placed in the `styles` directory and templates (with the extension `.twig`) should be placed in the `templates` directory; having done so, custom styles can now be set as defaults in the 'Settings' page or used via `style` or `template` shortcode attributes as required.
 
-== Known Issues ==
+## Known Issues
 
 * Only remote libraries are supported
 * Only BibTeX libraries are supported
 * The "cache cleared" admin message erroneously reappears after settings are saved
 * There are no unit tests
 
-== Changelog ==
+## Changelog
 
-= 1.0.0 =
+### 1.0.0
 First version.
