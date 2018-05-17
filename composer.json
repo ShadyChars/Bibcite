@@ -35,7 +35,7 @@
         },
         {
             "type": "vcs",
-            "url": "https://github.com/OrkneyDullard/converter"
+            "url": "https://github.com/ShadyChars/converter"
         }
     ],
     "require": {

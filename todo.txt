@@ -6,6 +6,7 @@ Setup:
 * WP install is D:/wamp64/www/wordpress-bibcite-sc
 * Wordpress is "admin" / "password"
 
+* Add {\ldots} to Latex escapes
 * Update readme.txt
 	* Shortcodes and attributes
 	* CSL styles and templating
@@ -22,6 +23,3 @@ Setup:
 	* If there's a default bibliography available, let the user preview a rendered entry?
 	* Test the specified library URL
 	* Add a link to a local documentation file?
-
-* Known issues
-	* "Cleared cache" admin message reappears after saving Bibcite settings
