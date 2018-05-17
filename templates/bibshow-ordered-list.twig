@@ -1,0 +1,5 @@
+<ol class="bibshow">
+{% for entry in entries %}
+	<li id="bibshow_{{ entry.key }}">{{ entry.entry | raw }}&nbsp;<a href="#bibcite_{{ entry.key }}" class="backlink" title="Jump back to reference {{ entry.key }} in the text.">&#8610;</a></li>
+{% endfor %}
+</ol>

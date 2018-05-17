@@ -1,24 +1,6 @@
-Setup:
-
-* DB is "wordpress-bibcite-sc" on localhost
-* phpMyAdmin is "root" / no password
-* Switched Wamp64 to PHP 7 (requirement for anonymous classes)
-* WP install is D:/wamp64/www/wordpress-bibcite-sc
-* Wordpress is "admin" / "password"
-
 * Add {\ldots} to Latex escapes
-* Update readme.txt
-	* Shortcodes and attributes
-	* CSL styles and templating
-		* All entries retrieved from the source library are rendered individually as citations, then composed into a list using a Twig template.
-* Install composer globally and remove composer.phar
-* Test ordering of sort attributes
+* Add sort attribute to bibshow
 * Remove this file
-* Publish to Github!
-	* Set up 2fa
-	* Create top-level ShadyChars namespace & fix constants?
-	* Push Bibcite to Github/ShadyChars
-	* Tag at 1.0.0
 * Admin improvements:
 	* If there's a default bibliography available, let the user preview a rendered entry?
 	* Test the specified library URL
