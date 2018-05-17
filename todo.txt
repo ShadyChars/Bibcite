@@ -1,7 +1,0 @@
-* Add {\ldots} to Latex escapes
-* Add sort attribute to bibshow
-* Remove this file
-* Admin improvements:
-	* If there's a default bibliography available, let the user preview a rendered entry?
-	* Test the specified library URL
-	* Add a link to a local documentation file?
