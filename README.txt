@@ -8,7 +8,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Bibcite adds and formats scholarly references in WordPress content. It supports Bibtex input files and formats their contents using CSL.
+Bibcite adds and formats scholarly references in WordPress content. It supports Bibtex input files and formats their contents using <abbr>CSL</abbr>.
 
 == Description ==
 
@@ -16,7 +16,7 @@ Bibcite consumes online BibTeX files to give you access to scholarly references 
 
 Source reference data is parsed from [BibTeX](http://bibtex.org) files available at URLs specified via shortcode (e.g. `[bibtex file=http://example.com/my-library.bib]`). Where a shortcode does not specify a library, a default library location can be set.
 
-Individual references are transformed into HTML using a specified [Citation Style Language](http://citationstyles.org/) (<abbr title="Citation Style Language">CSL</abbr>) style, and are then collected into groups for display using a specified [Twig](https://twig.symfony.com/) template (e.g. `[bibtex style=ieee style=my-ordered-list]`). Again, styles and templates can be specified via shortcode or, if omitted, will be replaced by default values.
+Individual references are transformed into <abbr>HTML</abbr> using a specified [Citation Style Language](http://citationstyles.org/) (<abbr title="Citation Style Language">CSL</abbr>) style, and are then collected into groups for display using a specified [Twig](https://twig.symfony.com/) template (e.g. `[bibtex style=ieee style=my-ordered-list]`). Again, styles and templates can be specified via shortcode or, if omitted, will be replaced by default values.
 
 == Acknowledgements ==
 
@@ -61,7 +61,7 @@ Note that where practicable, shortcode and attribute usage mirror those of Benja
 
 = Standalone Bibliographies =
 
-A standalone bibliography is added by the non-enclosing `[bibtex]` shortcode. The shortcode's attributes are processed to discover the content and style of the bibliograpy before being rendered into HTML. The shortcode accepts the following attributes:
+A standalone bibliography is added by the non-enclosing `[bibtex]` shortcode. The shortcode's attributes are processed to discover the content and style of the bibliograpy before being rendered into <abbr>HTML</abbr>. The shortcode accepts the following attributes:
 
 | Attribute  | Value  | Examples  |
 |---|---|---|
@@ -92,52 +92,89 @@ The opening `[bibshow]` shortcode supports the following attributes:
 | `style` | The name of a <abbr>CSL</abbr> style with which individual citations will be rendered. If not specified, the default `[bibcite]` style will be used. | `style=ieee`<br/>`style=chicago-fullnote-bibliography` |
 | `template` | The name of a Twig template with which individual rendered citations will be transformed into an <abbr>HTML</abbr> note.  If not specified, the default `[bibcite]` template will be used. | `template=bibcite-numbered-note`  |
 
-Here's an example show how a pair of `[bibshow]`...`[/bibshow]` shortcodes can be used to capture citations made within them:
+Here's an example of how `[bibshow]`...`[/bibshow]` and `[bibcite]` shortcode work together to create notes and an accompanying bibliography:
 
 ```html
 [bibshow]
-This is a note referring to a single source.[bibcite key=Reference1] And this is another.[bibcite key=Reference2]
+This is a note referring to a single source.[bibcite key=Reference1] And this is another.[bibcite key=Reference3]
 
-This is a note referring to two sources.[bibcite key=Reference1,Reference3]
+This is a note referring to two sources.[bibcite key=Reference1,Reference2]
 [/bibshow]
 ```
 
-This is processed as follows:
+This generates three notes in the text itself:
 
-1. When the plugin encounters a `[bibcite key=...]` shortcode, it finds the referenced sources in the appropriate BibTex library.
-2. The plugin renders those sources using the appropriate <abbr>CSL</abbr> style. (If a given `[bibcite]` shortcode references multiple sources, they are *all* processed in this way.)
-3. The rendered sources for a given `[bibcite]` shortcode are transformed into  <abbr>HTML</abbr> by the appropriate Twig template.
-4. On encountering the closing `[/bibshow]` shortcode, the system creates a list of all sources referenced by preceding `[bibcite]` shortcodes in the order in which they were encountered.
-5. The plugin renders this complete list of sources using the appropriate <abbr>CSL</abbr> style.
-3. The rendered sources for the closing `[/bibshow]` shortcode are transformed into an <abbr>HTML</abbr> bibliography by the appropriate Twig template.
+* The first refers to `Reference1`
+* The second refers to `Reference3`
+* The third refers to `Reference1` *and* `Reference2`
 
-Thus, when styling and templating are applied to both citations and notes, the end result looks something like this:
+The closing `[/bibshow]` shortcode is replaced by a bibliography that contains the set of all such references in the order in which they were encountered:
 
-![alt text](screenshots/bibshow.png. "Logo Title Text 1")
+1. `Reference1`
+2. `Reference3`
+3. `Reference2`
 
-The exact appearance of the notes and citations is dependent on the selected CSL styles and Twig templates for the `[bibcite]` and `[bibshow]` shortcodes. See the next section for details.
+Note that `Reference1` appears only once in the generated bibliography.
 
-= CSL Styles =
+The exact appearance of the generated notes and citations is dependent on the selected <abbr>CSL</abbr> styles and Twig templates for the `[bibcite]` and `[bibshow]` shortcodes. See the next section for details.
 
-Each of the shortcodes supported by this plugin can be assigned either a specified <abbr>CSL</abbr> style, or will inherit the default <abbr>CSL</abbr> style for that shortcode as defined in the settings.
+= Styles, Templates and the Rendering Process =
 
-= Twig templates =
+All three support shortcodes apply the same rendering process:
 
-TK
+1. Find the set of referenced citations
+2. Render each citation *individually* using a specified <abbr>CSL</abbr> style (taken from the shortcode's `style` attribute or inherited from the default value in the settings)
+3. Combine the individual rendered citations into a single chunk of <abbr>HTML</abbr> using a specified Twig template (taken from the shortcode's `template` attribute or inherited from the default value in the settings)
 
-= Advanced Features =
+In the case of `[bibtex]` and `[bibshow]` shortcodes, the set of referenced citations are those to be displayed as part of the generated bibliography. In the case of `[bibcite]` shortcodes, the set of references citations are those referred to by the shortcode's `key` attribute.
 
-TK
+In all cases, all relevant rendered citations are presented to the Twig template engine as an array (called `$entries`) of associative arrays with well-defined structures. As an example:
 
-* Cache clearing
-* Log files
+```php
+$entries = array(
+    array(
+        "index" => 1,           // 1-based numeric index
+        "key" => "Reference1",  // Citation key
+        "csl" => "...",         // CSL entry as JSON string
+        "entry" => "..."        // Rendered citation
+    ),
+    array(
+        "index" => 2,
+        "key" => "Reference2",
+        ...
+    ),
+    ...
+);
+```
+
+A simple Twig template to render `$entries` as a bibliography might look like this:
+
+```twig
+<dl>
+{% for entry in entries %}
+    <dt>{{ entry.index + 1 }}.</dt>
+    <dd>{{ entry.entry | raw }}</dd>
+{% endfor %}
+</dl>
+```
+
+= Custom styles and templates =
+
+Bibcite has a large number of built-in <abbr>CSL</abbr> styles, all taken from the [official repository of <abbr>CSL</abbr> styles](https://github.com/citation-style-language/styles/). These are available via autocomplete from the 'Settings' page. Additionally, Bibcite comes with a limited set of Twig templates:
+
+* `bibtex-unordered-list` is intended to render `[bibtex]` bibliographies as simple unordered lists
+* `bibcite-numbered-note` and `bibshow-definition-list` are intended to be used together to present `[bibtex]` and `[bibshow]` shortcodes as numbered notes pointing to a numbered bibliography
+
+Again, these are available via autocomplete from the 'Settings' page.
+
+However, it is possible to add both user-defined <abbr>CSL</abbr> styles and Twig templates. Styles (with the extension `.csl`) should be placed in the `styles` directory and templates (with the extension `.twig`) should be placed in the `templates` directory; having done so, custom styles can now be set as defaults in the 'Settings' page or used via `style` or `template` shortcode attributes as required.
 
 == Known Issues ==
 
 * Only remote libraries are supported
 * Only BibTeX libraries are supported
-* There is no unit testing
 * The "cache cleared" admin message erroneously reappears after settings are saved
+* There are no unit tests
 
 == Changelog ==
 
