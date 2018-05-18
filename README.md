@@ -1,6 +1,5 @@
 # Bibcite
 * Contributors: https://github.com/ShadyChars/
-* Donate link: https://github.com/ShadyChars/Bibcite/
 * Tags: references, bibtex, CSL, RIS, citations
 * Requires at least: 3.1.0
 * Tested up to: 4.9.5
