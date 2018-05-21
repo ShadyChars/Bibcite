@@ -263,11 +263,22 @@ class Main {
 
 		// Initialise our list of keys for this post
 		$this->post_id_to_bibshow_keys[$post_id] = array();
-		
+
 		// Process the content of this shortcode, in case we encounter any other 
 		// shortcodes - in particular, we need to build a list of any [bibcite] 
 		// shortcodes that define the contents of this [bibshow] bibliography.
-		$processed_content = do_shortcode($content);
+		$processed_content = trim(do_shortcode($content));
+
+		// The opening and closing [bibshow] shortcodes are automatically 
+		// stripped from $content, but we may be left with empty lines at the 
+		// start and end of the string as a result. Strip them off now.		
+		$break = "<br />";
+		if (substr($processed_content, 0, strlen($break)) == $break) {
+			$processed_content = substr($processed_content, strlen($break));
+		} 
+		if (substr($processed_content, -strlen($break)) == $break) {
+			$processed_content = substr($processed_content, 0, -strlen($break));
+		}
 
 		$logger->debug(
 			"Encountered closing shortcode with attributes: " . 
