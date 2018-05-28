@@ -159,41 +159,78 @@ class CslRenderer
 
 		// Load the style. Note that this may be a user-specified style.
 		$style = null;
-		if (in_array($csl_style_name, $this->user_csl_style_names)) {			
-			$user_style_file = implode( 
-				DIRECTORY_SEPARATOR, 
-				array($this->user_csl_styles_path, $csl_style_name . '.csl')
+		try
+		{
+			if (in_array($csl_style_name, $this->user_csl_style_names)) {			
+				$user_style_file = implode( 
+					DIRECTORY_SEPARATOR, 
+					array($this->user_csl_styles_path, $csl_style_name . '.csl')
+				);
+				$logger->debug("Using custom style: $user_style_file");
+				$style = file_get_contents($user_style_file);
+			} else if (in_array($csl_style_name, $this->csl_style_names)) {
+				$logger->debug("Using built-in style: $csl_style_name");
+				$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet(
+					$csl_style_name
+				);
+			} else {
+				$csl_default_style = $this->csl_style_names[0];
+				$logger->warning(
+					"Unrecognised style: $csl_style_name. Defaulting to $csl_default_style."
+				);
+				$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet(
+					$csl_default_style
+				);
+			}
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when determining CSL style: " . $e->getMessage()
 			);
-			$logger->debug("Using custom style: $user_style_file");
-			$style = file_get_contents($user_style_file);
-		} else if (in_array($csl_style_name, $this->csl_style_names)) {
-			$logger->debug("Using built-in style: $csl_style_name");
-			$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet(
-				$csl_style_name
-			);
-		} else {
-			$csl_default_style = $this->csl_style_names[0];
-			$logger->warning(
-				"Unrecognised style: $csl_style_name. Defaulting to $csl_default_style."
-			);
-			$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet(
-				$csl_default_style
-			);
+			return "";
 		}
 
-		// Render the entries with the specified CiteProc style		
-		$citeProc = new \Seboettg\CiteProc\CiteProc($style);
+		// Render the entries with the specified CiteProc style
+		try	{
+			$citeProc = new \Seboettg\CiteProc\CiteProc($style);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when loading CSL style: " . $e->getMessage()
+			);
+			return "";
+		}
+		
 		$rendered_entries = array();
-		foreach ($csl_entries as $index => $csl_entry) {			
+		foreach ($csl_entries as $index => $csl_entry) {
 			try {
+				$key = "unknown_key";
+				$rendered_entry = 
+					"<span style='color:gray'>Unknown entry</span>";
+	
 				// Render the citation. CiteProc expects an array of CSL JSON 
 				// objects, but we're rendering each one individually.
-				$key = empty($csl_entry) ? 
-					"unknown_key" : $csl_entry->{'citation-label'};
-				$rendered_entry = 
-					empty($csl_entry) ? 
-						"<span style='color:gray'>Unknown entry</span>" : 
-						$citeProc->render(array($csl_entry), "citation");
+				try {
+					if (!empty($csl_entry)) {
+						$key = $csl_entry->{'citation-label'};
+						$rendered_entry = 
+							$citeProc->render(array($csl_entry), "citation");
+					}				
+				} catch (\Error $error) {
+					$logger->error(
+						"Error when rendering CSL: " . 
+						$error->getMessage()
+					);
+					$json_csl_entry = json_encode($csl_entry);
+					$rendered_entry = 
+						"<span style='color:OrangeRed' title='$json_csl_entry'>Error when rendering entry ($key)</span>";
+				} catch (\Exception $exception) {
+					$logger->error(
+						"Exception when rendering CSL: " . 
+						$exception->getMessage()
+					);
+					$json_csl_entry = json_encode($csl_entry);
+					$rendered_entry = 
+						"<span style='color:Orange' title='$json_csl_entry'>Exception when rendering entry ($key)</span>";
+				}
 
 				// Save the rendered entry as part of an array.
 				$rendered_entries[] = array(
@@ -202,9 +239,15 @@ class CslRenderer
 					"csl" => json_encode($csl_entry),	// CSL JSON as string
 					"entry" => $rendered_entry			// rendered citation
 				);
-			} catch (Exception $e) {
+			} catch (\Error $error) {
 				$logger->error(
-					"Exception when rendering CSL: " . $e->getMessage()
+					"Error when constructing entry for template: " . 
+					$error->getMessage()
+				);
+			} catch (\Exception $exception) {
+				$logger->error(
+					"Exception when constructing entry for template: " . 
+					$exception->getMessage()
 				);
 			}
 		}
@@ -212,29 +255,37 @@ class CslRenderer
 		// Select the template style. Note that this may be our single hard-
 		// coded template.
 		$loader = null;
-		$user_template_file = implode( 
-			DIRECTORY_SEPARATOR, 
-			array($this->twig_templates_path, $twig_template_name . '.twig')
-		);
-		if (in_array($twig_template_name, $this->twig_template_names)) {			
-			$logger->debug("Using custom template: $user_template_file");
-			$loader = new \Twig_Loader_Filesystem($this->twig_templates_path);
-		} else {
-			$logger->warning(
-				"Unrecognised template: $user_template_file. Defaulting to built-in unordered list."
+		try
+		{
+			$user_template_file = implode( 
+				DIRECTORY_SEPARATOR, 
+				array($this->twig_templates_path, $twig_template_name . '.twig')
 			);
-			$twig_template_name = "built-in-unordered-list";
-			$loader = new \Twig_Loader_Array(
-				array(
-					"${twig_template_name}.twig" => <<<TWIG_DEFAULT_TEMPLATE
+			if (in_array($twig_template_name, $this->twig_template_names)) {			
+				$logger->debug("Using custom template: $user_template_file");
+				$loader = new \Twig_Loader_Filesystem($this->twig_templates_path);
+			} else {
+				$logger->warning(
+					"Unrecognised template: $user_template_file. Defaulting to built-in unordered list."
+				);
+				$twig_template_name = "built-in-unordered-list";
+				$loader = new \Twig_Loader_Array(
+					array(
+						"${twig_template_name}.twig" => <<<TWIG_DEFAULT_TEMPLATE
 <ul class="bibcite-default-template">
 {% for entry in entries %}
 	<li>{{ entry.entry | raw }}</li>
 {% endfor %}
 </ul>
 TWIG_DEFAULT_TEMPLATE
-				)
+					)
+				);
+			}
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when determing Twig template: " . $e->getMessage()
 			);
+			return "";
 		}
 
 		// Now apply the list template.
@@ -254,7 +305,7 @@ TWIG_DEFAULT_TEMPLATE
 				"${twig_template_name}.twig", 
 				array('entries' => $rendered_entries)
 			);
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			$logger->error(
 				"Exception when rendering CSL with template: " . $e->getMessage()
 			);
