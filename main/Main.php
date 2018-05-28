@@ -71,8 +71,9 @@ class Main {
 	public function do_bibtex_shortcode( 
 		$atts = [], string $content = null, string $tag = ''
 	) : string {
+
 		global $post;
-		$post_id = $post->ID;		
+		$post_id = $post->ID;
 		$logger = new \Bibcite\Common\ScopedLogger(
 			\Bibcite\Common\Logger::instance(), 
 			__METHOD__ ." - Post $post_id - "
@@ -86,61 +87,101 @@ class Main {
 		$attributes = self::parse_shortcode_attributes($tag, $atts);
 
 		// Get or update the library for the source URL
-		$csl_library = self::get_or_update_csl_library(
-			$attributes[self::URL_ATTRIBUTE]
-		);
+		try
+		{
+			$csl_library = self::get_or_update_csl_library(
+				$attributes[self::URL_ATTRIBUTE]
+			);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when getting CSL library for '" . 
+				$attributes[self::URL_ATTRIBUTE] . "': '" . 
+				$e->getMessage() . "'. Ignoring [bibtex] shortcode."
+			);
+			return "";
+		}
 
 		// Get the set of CSL JSON objects to be rendered.
-		$csl_entries = array();
-		foreach (explode(",", $attributes[self::KEYS_ATTRIBUTE]) as $csl_key) {
-			$csl_json_object = $csl_library->get($csl_key);
-			if ($csl_json_object) {
-				$logger->debug("Found CSL library entry: " . $csl_key);
-				$csl_entries[] = $csl_json_object;
+		try
+		{
+			$csl_entries = array();
+			foreach (explode(",", $attributes[self::KEYS_ATTRIBUTE]) as $csl_key) {
+				$csl_json_object = $csl_library->get($csl_key);
+				if ($csl_json_object) {
+					$logger->debug("Found CSL library entry: " . $csl_key);
+					$csl_entries[] = $csl_json_object;
+				}
+				else
+					$logger->warning(
+						"Could not find CSL library entry: " . $csl_key
+					);
 			}
-			else
-				$logger->warning(
-					"Could not find CSL library entry: " . $csl_key
-				);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when getting CSL keys from library '" . 
+				$attributes[self::KEYS_ATTRIBUTE] . "': '" . 
+				$e->getMessage() . "'. Ignoring [bibtex] shortcode."
+			);
+			return "";
 		}
 
 		// Do we need to sort the entries?
-		if ($attributes[self::SORT_ATTRIBUTE]) {
-			$sort = $attributes[self::SORT_ATTRIBUTE];
-			$order = $attributes[self::ORDER_ATTRIBUTE];
+		try
+		{
+			if ($attributes[self::SORT_ATTRIBUTE]) {
+				$sort = $attributes[self::SORT_ATTRIBUTE];
+				$order = $attributes[self::ORDER_ATTRIBUTE];
 
-			// Run a string comparison on the specified field. Invert the 
-			// comparison score if we want the sort order to be descending.
-			usort(
-				$csl_entries,
-				function($a, $b) use ($sort, $order) {
-					try {						
-						$cmp = strcmp(
-							var_export($a->{$sort}, true), 
-							var_export($b->{$sort}, true)
-						);
-						return ($order == "asc") ? $cmp : -$cmp;
+				// Run a string comparison on the specified field. Invert the 
+				// comparison score if we want the sort order to be descending.
+				usort(
+					$csl_entries,
+					function($a, $b) use ($sort, $order) {
+						try {						
+							$cmp = strcmp(
+								var_export($a->{$sort}, true), 
+								var_export($b->{$sort}, true)
+							);
+							return ($order == "asc") ? $cmp : -$cmp;
+						} catch (\Exception $e) {
+							$logger->warning(
+								"Could not sort on CSL attribute '$sort': " . 
+								$e->getMessage()
+							);
+							return 0;
+						}
 					}
-					catch (Exception $e) {
-						$logger->warning(
-							"Could not sort on CSL attribute '$sort': " . 
-							$e->getMessage()
-						);
-						return 0;
-					}
-				}
+				);
+			}
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when sorting CSL entries '" . 
+				$attributes[self::SORT_ATTRIBUTE] . "'; '" .
+				$attributes[self::ORDER_ATTRIBUTE] ."': '" . 
+				$e->getMessage() . "'. Ignoring [bibtex] shortcode."
 			);
+			return "";
 		}
 
 		// Render and return the bibliography.
-		$logger->info(
-			"Rendering keys " . $attributes[self::KEYS_ATTRIBUTE] . "..."
-		);
-		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
-			$csl_entries, 
-			$attributes[self::STYLE_ATTRIBUTE], 
-			$attributes[self::TEMPLATE_ATTRIBUTE]
-		);
+		try
+		{
+			$logger->info(
+				"Rendering keys " . $attributes[self::KEYS_ATTRIBUTE] . "..."
+			);
+			return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
+				$csl_entries, 
+				$attributes[self::STYLE_ATTRIBUTE], 
+				$attributes[self::TEMPLATE_ATTRIBUTE]
+			);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when rendering CSL entries '" . 
+				$attributes[self::KEYS_ATTRIBUTE] ."': '" . 
+				$e->getMessage() . "'. Ignoring [bibtex] shortcode."
+			);
+			return "";
+		}
 	}
 
 	/**
@@ -186,52 +227,89 @@ class Main {
 		// order that we encounter them. Separately, build a list of keys *for 
 		// this shortcode only* to be rendered and emitted at the end of this 
 		// method.
-		$keys_for_post = &$this->post_id_to_bibshow_keys[$post_id];
-		$keys_for_shortcode = explode(",", $attributes[self::KEYS_ATTRIBUTE]);
+		try {
+			$keys_for_post = &$this->post_id_to_bibshow_keys[$post_id];
+			$keys_for_shortcode = explode(",", $attributes[self::KEYS_ATTRIBUTE]);
 
-		// Do we need to do anything?
-		if (count($keys_for_shortcode) <= 0) {
-			$logger->warning("No keys found. Skipping shortcode.");
+			// Do we need to do anything?
+			if (count($keys_for_shortcode) <= 0) {
+				$logger->warning("No keys found. Skipping shortcode.");
+				return "";
+			}
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception getting CSL keys for shortcode '" . 
+				$attributes[self::KEYS_ATTRIBUTE] ."': '" . 
+				$e->getMessage() . "'. Ignoring [bibcite] shortcode."
+			);
 			return "";
 		}
 
 		// If we're here, we need to render our notes. First, get the library.
-		$csl_library = self::get_or_update_csl_library(
-			$attributes[self::URL_ATTRIBUTE]
-		);
+		try {
+			$csl_library = self::get_or_update_csl_library(
+				$attributes[self::URL_ATTRIBUTE]
+			);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when getting CSL library for '" . 
+				$attributes[self::URL_ATTRIBUTE] . "': '" . 
+				$e->getMessage() . "'. Ignoring [bibcite] shortcode."
+			);
+			return "";
+		}
 
-		// For each key in this shortcode...		
-		$indexed_csl_values_to_render = array();
-		foreach ($keys_for_shortcode as $csl_key) {
+		// For each key in this shortcode...	
+		try {	
+			$indexed_csl_values_to_render = array();
+			foreach ($keys_for_shortcode as $csl_key) {
 
-			// If this key doesn't already exist in the list of keys to be 
-			// rendered in the bibliography, add it now.
-			if (!in_array($csl_key, $keys_for_post))
-				$keys_for_post[] = $csl_key;
+				// If this key doesn't already exist in the list of keys to be 
+				// rendered in the bibliography, add it now.
+				if (!in_array($csl_key, $keys_for_post))
+					$keys_for_post[] = $csl_key;
 
-			// Add this entry to the set to be rendered. Use the entry's 
-			// position in the bibliography as its index.
-			$index = array_search($csl_key, $keys_for_post);
-			$csl_json_entry = $csl_library->get($csl_key);
-			$indexed_csl_values_to_render[$index] = $csl_json_entry;
+				// Add this entry to the set to be rendered. Use the entry's 
+				// position in the bibliography as its index.
+				$index = array_search($csl_key, $keys_for_post);
+				$csl_json_entry = $csl_library->get($csl_key);
+				$indexed_csl_values_to_render[$index] = $csl_json_entry;
 
-			// Did we fail to get a valid CSL entry for this key, for whatever 
-			// reason?
-			if (!isset($csl_json_entry) || $csl_json_entry == false) 
-				$logger->warning(
-					"Could not find CSL entry for key $csl_key. Skipping."
-				);
+				// Did we fail to get a valid CSL entry for this key, for 
+				// whatever reason?
+				if (!isset($csl_json_entry) || $csl_json_entry == false) 
+					$logger->warning(
+						"Could not find CSL entry for key $csl_key. Skipping."
+					);
+			}
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when getting CSL keys from library '" . 
+				$attributes[self::KEYS_ATTRIBUTE] . "': '" . 
+				$e->getMessage() . "'. Ignoring [bibcite] shortcode."
+			);
+			return "";
 		}
 
 		// Done. Render the note(s).
-		$logger->info(
-			"Rendering keys " . $attributes[self::KEYS_ATTRIBUTE] . "..."
-		);
-		return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
-			$indexed_csl_values_to_render, 
-			$attributes[self::STYLE_ATTRIBUTE],
-			$attributes[self::TEMPLATE_ATTRIBUTE]
-		);
+		try
+		{
+			$logger->info(
+				"Rendering keys " . $attributes[self::KEYS_ATTRIBUTE] . "..."
+			);
+			return \Bibcite\Common\CslRenderer::instance()->renderCslEntries(
+				$indexed_csl_values_to_render, 
+				$attributes[self::STYLE_ATTRIBUTE],
+				$attributes[self::TEMPLATE_ATTRIBUTE]
+			);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when rendering CSL entries '" . 
+				$attributes[self::KEYS_ATTRIBUTE] ."': '" . 
+				$e->getMessage() . "'. Ignoring [bibcite] shortcode."
+			);
+			return "";
+		}
 	}
 
 	/**
@@ -267,7 +345,15 @@ class Main {
 		// Process the content of this shortcode, in case we encounter any other 
 		// shortcodes - in particular, we need to build a list of any [bibcite] 
 		// shortcodes that define the contents of this [bibshow] bibliography.
-		$processed_content = do_shortcode($content);
+		try {
+			$processed_content = do_shortcode($content);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when calling do_shortcode: '" .
+				$e->getMessage() . "'. Ignoring [bibshow] shortcode."
+			);
+			return $content;
+		}
 
 		$logger->debug(
 			"Encountered closing shortcode with attributes: " . 
@@ -285,34 +371,62 @@ class Main {
 		$attributes = self::parse_shortcode_attributes($tag, $atts);
 
 		// Get or update the library for the source URL
-		$csl_library = self::get_or_update_csl_library(
-			$attributes[self::URL_ATTRIBUTE]
-		);
+		try {
+			$csl_library = self::get_or_update_csl_library(
+				$attributes[self::URL_ATTRIBUTE]
+			);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when getting CSL library for '" . 
+				$attributes[self::URL_ATTRIBUTE] . "': '" . 
+				$e->getMessage() . "'. Ignoring [bibshow] shortcode."
+			);
+			return $processed_content;
+		}
 		
 		// Find all relevant bibcite keys and place the associated CSL JSON 
 		// entries in an array. This will preserve the ordering and indexing of 
 		// the values to be rendered.
-		$keys_for_post = $this->post_id_to_bibshow_keys[$post_id];
-		$indices_to_csl_json_objects = array_map(			
-			function($key) use ($csl_library) { 
-				return $csl_library->get($key);
-			},
-			$keys_for_post
-		);
+		try {
+			$keys_for_post = $this->post_id_to_bibshow_keys[$post_id];
+			$indices_to_csl_json_objects = array_map(			
+				function($key) use ($csl_library) { 
+					return $csl_library->get($key);
+				},
+				$keys_for_post
+			);
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when getting CSL keys from library '" . 
+				$attributes[self::KEYS_ATTRIBUTE] . "': '" . 
+				$e->getMessage() . "'. Ignoring [bibshow] shortcode."
+			);
+			return $processed_content;
+		}
 
 		// Render and return the bibliography.
-		$key_count = sizeof($keys_for_post);
-		$logger->debug(
-			"Rendering $key_count keys for closing bibshow shortcode..."
-		);
-		$bibliography = 
-			\Bibcite\Common\CslRenderer::instance()->renderCslEntries(
-				$indices_to_csl_json_objects,
-				$attributes[self::STYLE_ATTRIBUTE],
-				$attributes[self::TEMPLATE_ATTRIBUTE]
+		try
+		{
+			$key_count = sizeof($keys_for_post);
+			$logger->debug(
+				"Rendering $key_count keys for closing bibshow shortcode..."
 			);
+			$bibliography = 
+				\Bibcite\Common\CslRenderer::instance()->renderCslEntries(
+					$indices_to_csl_json_objects,
+					$attributes[self::STYLE_ATTRIBUTE],
+					$attributes[self::TEMPLATE_ATTRIBUTE]
+				);
 
-		return $processed_content . $bibliography;
+			return $processed_content . $bibliography;
+		} catch (\Exception $e) {
+			$logger->error(
+				"Exception when rendering CSL entries '" . 
+				$attributes[self::KEYS_ATTRIBUTE] ."': '" . 
+				$e->getMessage() . "'. Ignoring [bibshow] shortcode."
+			);
+			return $processed_content;
+		}
 	}
 
 	/**
@@ -329,48 +443,63 @@ class Main {
 		string $shortcode, $atts
 	) : array {
 
-		$style_attribute_default = '';
-		switch ($shortcode) {
-			case "bibcite":
-				$style_attribute_default = 
-					get_option(\Bibcite\Admin\Admin::BIBCITE_STYLE_NAME);
-				break;
-			case "bibshow":
-				$style_attribute_default = 
-					get_option(\Bibcite\Admin\Admin::BIBSHOW_STYLE_NAME);
-				break;
-			case "bibtex":
-				$style_attribute_default = 
-					get_option(\Bibcite\Admin\Admin::BIBTEX_STYLE_NAME);
-				break;
-		}
-		
-		$template_attribute_default = '';
-		switch ($shortcode) {
-			case "bibcite":
-				$template_attribute_default = 
-					get_option(\Bibcite\Admin\Admin::BIBCITE_TEMPLATE_NAME);
-				break;
-			case "bibshow":
-				$template_attribute_default = 
-					get_option(\Bibcite\Admin\Admin::BIBSHOW_TEMPLATE_NAME);
-				break;
-			case "bibtex":
-				$template_attribute_default = 
-					get_option(\Bibcite\Admin\Admin::BIBTEX_TEMPLATE_NAME);
-				break;
-		}
+		try
+		{
+			$style_attribute_default = '';
+			switch ($shortcode) {
+				case "bibcite":
+					$style_attribute_default = 
+						get_option(\Bibcite\Admin\Admin::BIBCITE_STYLE_NAME);
+					break;
+				case "bibshow":
+					$style_attribute_default = 
+						get_option(\Bibcite\Admin\Admin::BIBSHOW_STYLE_NAME);
+					break;
+				case "bibtex":
+					$style_attribute_default = 
+						get_option(\Bibcite\Admin\Admin::BIBTEX_STYLE_NAME);
+					break;
+			}
+			
+			$template_attribute_default = '';
+			switch ($shortcode) {
+				case "bibcite":
+					$template_attribute_default = 
+						get_option(\Bibcite\Admin\Admin::BIBCITE_TEMPLATE_NAME);
+					break;
+				case "bibshow":
+					$template_attribute_default = 
+						get_option(\Bibcite\Admin\Admin::BIBSHOW_TEMPLATE_NAME);
+					break;
+				case "bibtex":
+					$template_attribute_default = 
+						get_option(\Bibcite\Admin\Admin::BIBTEX_TEMPLATE_NAME);
+					break;
+			}
 
-		$defaults = array(
-			self::URL_ATTRIBUTE => get_option(\Bibcite\Admin\Admin::LIBRARY_URL),
-			self::KEYS_ATTRIBUTE => '',
-			self::STYLE_ATTRIBUTE => $style_attribute_default,
-			self::TEMPLATE_ATTRIBUTE => $template_attribute_default,
-			self::SORT_ATTRIBUTE => null,
-			self::ORDER_ATTRIBUTE => "asc"
-		);
+			$defaults = array(
+				self::URL_ATTRIBUTE => 
+					get_option(\Bibcite\Admin\Admin::LIBRARY_URL),
+				self::KEYS_ATTRIBUTE => '',
+				self::STYLE_ATTRIBUTE => $style_attribute_default,
+				self::TEMPLATE_ATTRIBUTE => $template_attribute_default,
+				self::SORT_ATTRIBUTE => null,
+				self::ORDER_ATTRIBUTE => "asc"
+			);
 
-		return shortcode_atts($defaults, $atts, $shortcode);
+			return shortcode_atts($defaults, $atts, $shortcode);
+		} catch (\Exception $e) {
+			$logger = new \Bibcite\Common\ScopedLogger(
+				\Bibcite\Common\Logger::instance(), __METHOD__ ." - "
+			);
+			$logger->error(
+				"Caught exception when processing shortcode attributes: '" .
+				$e->getMessage() . 
+				"'. Returning original attributes."
+			);
+
+			return $atts;
+		}
 	}
 
 	/**
@@ -449,8 +578,7 @@ class Main {
 					$csl_library->add_or_update(
 						$bibtex_entry["citation-key"], $csl_json_object
 					);
-				}
-				catch (Exception $e) {
+				} catch (\Exception $e) {
 					$logger->warning(
 						"Failed to convert and save Bibtex entry: " . 
 						$e->getMessage()

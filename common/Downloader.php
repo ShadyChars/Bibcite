@@ -148,7 +148,7 @@ class Downloader
             $curl_error = curl_error($ch);
             curl_close($ch);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $logger->error(
                 "Caught exception when retrieving URL: " . $e->getMessage() . 
                 ". Returning cached value."

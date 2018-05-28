@@ -51,7 +51,7 @@ class BibtexParser
             $parser->parseFile($filename);
             $entries = $listener->export();
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $logger->error("Failed to parse string: " . $e->getMessage() . ".");
         } finally {
             unlink($filename);
