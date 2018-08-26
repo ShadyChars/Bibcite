@@ -11,7 +11,7 @@ require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
  * creates an admin page to manage them.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
- * @link https://github.com/OrkneyDullard/Bibcite
+ * @link https://github.com/ShadyChars/Bibcite
  * @since 1.0.0
  */
 class Admin

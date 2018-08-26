@@ -10,7 +10,7 @@ require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
  * Each instance of this class manages a named database of CSL entries.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
- * @link https://github.com/OrkneyDullard/Bibcite
+ * @link https://github.com/ShadyChars/Bibcite
  * @package Bibcite\Common
  * @since 1.0.0
  */
@@ -38,7 +38,7 @@ class CslLibrary
      *
      * @param string $scope
      * @author Keith Houston <keith@shadycharacters.co.uk>
-     * @link https://github.com/OrkneyDullard/Bibcite
+     * @link https://github.com/ShadyChars/Bibcite
      * @package Bibcite
      * @since 1.0.0
      */

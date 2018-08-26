@@ -15,7 +15,7 @@ use Geissler\Converter\Standard\CSL\CSL;
  * shortcodes.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
- * @link https://github.com/OrkneyDullard/Bibcite
+ * @link https://github.com/ShadyChars/Bibcite
  * @package Bibcite\Main
  * @since 1.0.0
  */

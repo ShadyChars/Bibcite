@@ -1,5 +1,5 @@
 {
-    "name": "OrkneyDullard/Bibcite",
+    "name": "ShadyChars/Bibcite",
     "description": "A simple Bibtex parser and CSL citation generator.",
     "autoload": {
         "psr-4": {
