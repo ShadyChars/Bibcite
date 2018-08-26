@@ -9,7 +9,7 @@ require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
  * with an arbitrary string.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
- * @link https://github.com/OrkneyDullard/Bibcite
+ * @link https://github.com/ShadyChars/Bibcite
  * @package Bibcite\Common
  * @since 1.0.0
  */
@@ -27,7 +27,7 @@ class ScopedLogger implements \Psr\Log\LoggerInterface
      * @param \Psr\Log\LoggerInterface $log
      * @param string $prefix
      * @author Keith Houston <keith@shadycharacters.co.uk>
-     * @link https://github.com/OrkneyDullard/Bibcite
+     * @link https://github.com/ShadyChars/Bibcite
      * @package Bibcite
      * @since 1.0.0
      */

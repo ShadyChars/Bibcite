@@ -1,0 +1,13 @@
+{% spaceless %}
+	{%- for entry in entries -%}
+		<a 
+			class="bibcite" 
+			id="bibcite_{{- entry.key -}}" 
+			href="#bibshow_{{- entry.key -}}" 
+			title="{{- entry.entry | striptags -}}"
+			data-version="1">
+				{{- entry.index + 1 -}}
+				{%- if (loop.length > 1) and (loop.index < loop.length) -%},{%- endif -%}
+		</a>
+	{%- endfor -%}
+{% endspaceless %}

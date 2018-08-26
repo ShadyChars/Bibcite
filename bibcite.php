@@ -7,13 +7,13 @@
  * file also includes all of the dependencies used by the plugin, registers activation,
  * deactivation and uninstallation functions, and defines a function that starts the plugin.
  *
- * @link              https://github.com/OrkneyDullard/Bibcite
+ * @link              https://github.com/ShadyChars/Bibcite
  * @since             1.0.0
  * @package           Bibcite
  *
  * @wordpress-plugin
  * Plugin Name:       Bibcite
- * Plugin URI:        https://github.com/OrkneyDullard/Bibcite
+ * Plugin URI:        https://github.com/ShadyChars/Bibcite
  * Description:       A simple Bibtex parser and citation generator.
  * Version:           1.0.1
  * Author:            Keith Houston
@@ -33,7 +33,7 @@ require plugin_dir_path(__FILE__) . 'vendor/autoload.php';
 /**
  * Current plugin version.
  */
-define('BIBCITE_VERSION', '1.0.1');
+define('BIBCITE_VERSION', '1.1.2');
 
 /**
  * A general prefix used to scope databases, tables, constants, and so on.

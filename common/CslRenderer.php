@@ -9,7 +9,7 @@ require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
  * associated data.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
- * @link https://github.com/OrkneyDullard/Bibcite
+ * @link https://github.com/ShadyChars/Bibcite
  * @package Bibcite\Common
  * @since 1.0.0
  */
@@ -209,6 +209,7 @@ class CslRenderer
 				// Render the citation. CiteProc expects an array of CSL JSON 
 				// objects, but we're rendering each one individually.
 				try {
+					// TODO: modify this so that we can emit the failed key.
 					if (!empty($csl_entry)) {
 						$key = $csl_entry->{'citation-label'};
 						$rendered_entry = 
@@ -219,17 +220,15 @@ class CslRenderer
 						"Error when rendering CSL: " . 
 						$error->getMessage()
 					);
-					$json_csl_entry = json_encode($csl_entry);
 					$rendered_entry = 
-						"<span style='color:OrangeRed' title='$json_csl_entry'>Error when rendering entry ($key)</span>";
+						"<span style='color:OrangeRed'>Error when rendering entry ($key)</span>";
 				} catch (\Exception $exception) {
 					$logger->error(
 						"Exception when rendering CSL: " . 
 						$exception->getMessage()
 					);
-					$json_csl_entry = json_encode($csl_entry);
 					$rendered_entry = 
-						"<span style='color:Orange' title='$json_csl_entry'>Exception when rendering entry ($key)</span>";
+						"<span style='color:Orange'>Exception when rendering entry ($key)</span>";
 				}
 
 				// Save the rendered entry as part of an array.

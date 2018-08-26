@@ -14,7 +14,7 @@ require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
  * the plugin, and other plugin-wide constants.
  * 
  * @author Keith Houston <keith@shadycharacters.co.uk>
- * @link https://github.com/OrkneyDullard/Bibcite
+ * @link https://github.com/ShadyChars/Bibcite
  * @package Bibcite\Common
  * @since 1.0.0
  */

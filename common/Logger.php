@@ -11,7 +11,7 @@ require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
  * https://www.sitepoint.com/implementing-psr-3-with-log4php/.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
- * @link https://github.com/OrkneyDullard/Bibcite
+ * @link https://github.com/ShadyChars/Bibcite
  * @package Bibcite\Common
  * @since 1.0.0
  */

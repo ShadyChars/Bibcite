@@ -10,7 +10,7 @@ namespace Bibcite\Common;
  * list of actions and filters.
  *
  * @author Keith Houston <keith@shadycharacters.co.uk>
- * @link https://github.com/OrkneyDullard/Bibcite
+ * @link https://github.com/ShadyChars/Bibcite
  * @package Bibcite\Common
  * @since 1.0.0
  */
