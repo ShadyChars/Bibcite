@@ -216,7 +216,7 @@ class Main {
 		// Do we already have an array of known keys for this post? If not, 
 		// there's no enclosing [bibshow] shortcode.
 		if (!isset($this->post_id_to_bibshow_keys[$post_id])) {
-			$logger->warn("No enclosing [bibshow] shortcode. Skipping");
+			$logger->warning("No enclosing [bibshow] shortcode. Skipping");
 			return "";
 		}
 
