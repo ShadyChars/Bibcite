@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 /**
  * A static class used to download HTTP URLs and return their bodies.

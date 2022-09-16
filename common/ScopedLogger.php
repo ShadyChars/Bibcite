@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 /**
  * A wrapper for a \Psr\Log\LoggerInterface allowing messages to be prefixed 

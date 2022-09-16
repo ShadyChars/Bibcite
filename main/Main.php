@@ -2,7 +2,7 @@
 
 namespace Bibcite\Main;
 
-require plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 use Geissler\Converter\Converter;
 use Geissler\Converter\Standard\BibTeX\BibTeX;
