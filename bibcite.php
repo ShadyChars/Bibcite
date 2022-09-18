@@ -15,7 +15,7 @@
  * Plugin Name:       Bibcite
  * Plugin URI:        https://github.com/ShadyChars/Bibcite
  * Description:       A simple Bibtex parser and citation generator.
- * Version:           1.0.1
+ * Version:           1.1.3
  * Author:            Keith Houston
  * Author URI:        https://github.com/OrkneyDullard/
  * License:           GPL-2.0+
@@ -28,12 +28,12 @@ if (!defined('WPINC')) {
     die;
 }
 
-require plugin_dir_path(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+require plugin_dir_path(__FILE__) . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 /**
  * Current plugin version.
  */
-define('BIBCITE_VERSION', '1.1.2');
+define('BIBCITE_VERSION', '1.1.3');
 
 /**
  * A general prefix used to scope databases, tables, constants, and so on.

@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 /**
  * Provides a single point of access to citation rendering services and 
@@ -57,7 +57,7 @@ class CslRenderer
 		$this->csl_styles_path = implode( 
 			DIRECTORY_SEPARATOR, 
 			array( 
-				plugin_dir_path(dirname(__FILE__)), 
+				untrailingslashit(plugin_dir_path(dirname(__FILE__))), 
 				'vendor', 
 				'citation-style-language',
 				'styles-distribution'
@@ -76,10 +76,7 @@ class CslRenderer
 					basename(substr($csl_style_file, 0, -4));
 
 		// List user-generated styles
-		$this->user_csl_styles_path = implode( 
-			DIRECTORY_SEPARATOR, 
-			array(plugin_dir_path(dirname(__FILE__)), 'styles')
-		);
+		$this->user_csl_styles_path = plugin_dir_path(dirname(__FILE__)) . 'styles';
 
 		$dir_iterator = 
 			new \RecursiveDirectoryIterator($this->user_csl_styles_path);
@@ -93,10 +90,7 @@ class CslRenderer
 					basename(substr($user_csl_style_file, 0, -4));
 
 		// List Twig templates
-		$this->twig_templates_path = implode( 
-			DIRECTORY_SEPARATOR, 
-			array( plugin_dir_path(dirname(__FILE__)), 'templates' )
-		);
+		$this->twig_templates_path = plugin_dir_path(dirname(__FILE__)) .'templates';
 
 		$dir_iterator = 
 			new \RecursiveDirectoryIterator($this->twig_templates_path);
@@ -164,7 +158,7 @@ class CslRenderer
 			if (in_array($csl_style_name, $this->user_csl_style_names)) {			
 				$user_style_file = implode( 
 					DIRECTORY_SEPARATOR, 
-					array($this->user_csl_styles_path, $csl_style_name . '.csl')
+					array(untrailingslashit($this->user_csl_styles_path), $csl_style_name . '.csl')
 				);
 				$logger->debug("Using custom style: $user_style_file");
 				$style = file_get_contents($user_style_file);
@@ -212,8 +206,8 @@ class CslRenderer
 					// TODO: modify this so that we can emit the failed key.
 					if (!empty($csl_entry)) {
 						$key = $csl_entry->{'citation-label'};
-						$rendered_entry = 
-							$citeProc->render(array($csl_entry), "citation");
+						$rendered_entry = $citeProc->render(array($csl_entry), "citation");
+						$logger->debug(json_encode($csl_entry));
 					}				
 				} catch (\Error $error) {
 					$logger->error(
@@ -258,7 +252,7 @@ class CslRenderer
 		{
 			$user_template_file = implode( 
 				DIRECTORY_SEPARATOR, 
-				array($this->twig_templates_path, $twig_template_name . '.twig')
+				array(untrailingslashit($this->twig_templates_path), $twig_template_name . '.twig')
 			);
 			if (in_array($twig_template_name, $this->twig_template_names)) {			
 				$logger->debug("Using custom template: $user_template_file");
@@ -292,7 +286,7 @@ TWIG_DEFAULT_TEMPLATE
 			$twig_cache_dir = implode( 
 				DIRECTORY_SEPARATOR, 
 				array( 
-					plugin_dir_path(dirname(__FILE__)), 
+					untrailingslashit(plugin_dir_path(dirname(__FILE__))), 
 					BIBCITE_CACHE_DIRECTORY, 
 					'twig'
 				)

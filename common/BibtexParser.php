@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 /**
  * Parses a local Bibtex file and returns a list of parsed entries.
@@ -30,10 +30,7 @@ class BibtexParser
 
         // Create and run a parser.
         $entries = array();
-        $cache_directory = implode( 
-			DIRECTORY_SEPARATOR, 
-			array( get_temp_dir(), BIBCITE_CACHE_DIRECTORY)
-		);
+        $cache_directory = get_temp_dir() . BIBCITE_CACHE_DIRECTORY;
         $logger->debug("Using cache directory: " . $cache_directory);
         $filename = tempnam($cache_directory, __METHOD__);
         try {

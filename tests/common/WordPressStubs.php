@@ -6,7 +6,7 @@ function get_temp_dir()
 {
     // CslRenderer relies on WP's get_temp_dir() function to discover where
     // to create a cache directory. Force it to create one here.
-    return realpath(dirname(__FILE__));
+    return trailingslashit(realpath(dirname(__FILE__)));
 }
 
 function plugin_dir_path($dirname) 
@@ -14,5 +14,13 @@ function plugin_dir_path($dirname)
     // CslRenderer relies on WP's plugin_dir_path() function to discover its 
     // autoload file. Override to return the top-level autoload file.
     $filename = basename($_SERVER["SCRIPT_FILENAME"], '.php');
-    return realpath(dirname($filename));
+    return trailingslashit(realpath(dirname($filename)));
+}
+
+function untrailingslashit( $string ) {
+	return rtrim( $string, '/\\' );
+}
+
+function trailingslashit( $string ) {
+	return untrailingslashit( $string ) . DIRECTORY_SEPARATOR;
 }

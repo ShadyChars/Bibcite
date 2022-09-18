@@ -2,7 +2,7 @@
 
 namespace Bibcite\Common;
 
-require plugin_dir_path(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+require plugin_dir_path(dirname(__FILE__)) . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 /**
  * The core plugin class.
@@ -68,7 +68,7 @@ class Bibcite
         if (defined('BIBCITE_VERSION')) {
             $this->version = BIBCITE_VERSION;
         } else {
-            $this->version = '1.0.1';
+            $this->version = '1.1.3';
         }
         $this->bibcite = 'bibcite';
 

@@ -3,7 +3,7 @@
 * Tags: references, bibtex, CSL, RIS, citations
 * Requires at least: 3.1.0
 * Tested up to: 4.9.5
-* Stable tag: 1.0.1
+* Stable tag: 1.1.3
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -179,3 +179,7 @@ However, it is possible to add both user-defined <abbr>CSL</abbr> styles and Twi
 
 ### 1.0.0
 First version.
+
+### 1.1.3
+* Improvements to Wordpress path handling.
+* Added UTs for basic cases.

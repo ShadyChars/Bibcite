@@ -25,7 +25,11 @@ final class CslRendererTest extends TestCase
         );
         $this->assertTrue(
             str_contains($rendered_entries, "Tarantelli"), 
-            "Expected 'rendered_entries' to contain previously problematic entry."
+            "Expected 'rendered_entries' to contain previously problematic entry author."
+        );
+        $this->assertTrue(
+            str_contains($rendered_entries, "Voice Into Text"), 
+            "Expected 'rendered_entries' to contain previously problematic entry title."
         );
     }
 }
