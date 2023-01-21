@@ -273,6 +273,11 @@
   </macro>
   <macro name="title">
     <choose>
+      <if variable="URL">
+        <text value="&lt;a href="/><text variable="URL"/><text value="&gt;"/>
+      </if>
+    </choose>
+    <choose>
       <if variable="title" match="none">
         <choose>
           <if type="personal_communication" match="none">
@@ -303,8 +308,18 @@
         <text variable="title" text-case="title" quotes="true"/>
       </else>
     </choose>
+    <choose>
+      <if variable="URL">
+        <text value="&lt;/a&gt;"/>
+      </if>
+    </choose>
   </macro>
   <macro name="title-short">
+    <choose>
+      <if variable="URL">
+        <text value="&lt;a href="/><text variable="URL"/><text value="&gt;"/>
+      </if>
+    </choose>
     <choose>
       <if variable="title" match="none">
         <choose>
@@ -331,6 +346,11 @@
       <else>
         <text variable="title" text-case="title" form="short" quotes="true"/>
       </else>
+    </choose>
+     <choose>
+      <if variable="URL">
+        <text value="&lt;/a&gt;"/>
+      </if>
     </choose>
   </macro>
   <macro name="date-disambiguate">
@@ -1265,9 +1285,6 @@
             <if variable="DOI">
               <text variable="DOI" prefix="https://doi.org/"/>
             </if>
-            <else>
-              <text variable="URL"/>
-            </else>
           </choose>
         </if>
       </choose>
@@ -1297,9 +1314,6 @@
             <if variable="DOI">
               <text variable="DOI" prefix="https://doi.org/"/>
             </if>
-            <else>
-              <text variable="URL"/>
-            </else>
           </choose>
         </if>
       </choose>

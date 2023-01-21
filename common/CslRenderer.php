@@ -203,10 +203,16 @@ class CslRenderer
 				// Render the citation. CiteProc expects an array of CSL JSON 
 				// objects, but we're rendering each one individually.
 				try {
-					// TODO: modify this so that we can emit the failed key.
+					// chicago-fullnote-bibliography-with-url.csl doesn't use hyperlinks but rather inline URLs.
+					// Options:
+					//
+					// * Using std Chicago style but use Citeproc
+					// lambdas to inject title links and skip URLs. (See https://github.com/seboettg/citeproc-php.)
+					// * Clone std Chicago style but add links to titles and remove from
+					// end of entries.
 					if (!empty($csl_entry)) {
 						$key = $csl_entry->{'citation-label'};
-						$rendered_entry = $citeProc->render(array($csl_entry), "citation");
+						$rendered_entry = $citeProc->render(array($csl_entry), "bibliography");
 						$logger->debug(json_encode($csl_entry));
 					}				
 				} catch (\Error $error) {
