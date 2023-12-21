@@ -183,57 +183,25 @@ class Logger implements \Psr\Log\LoggerInterface
 	}
 	
 	/**
-     * Interpolates context values into the message placeholders.
-     * Taken from PSR-3's example implementation.
-     */
-    protected function interpolate($message, array $context = array()) {
-        // build a replacement array with braces around the context
-        // keys
-        $replace = array();
-        foreach ($context as $key => $val) {
-            $replace['{' . $key . '}'] = $val;
-        }
+   * Interpolates context values into the message placeholders.
+   * Taken from PSR-3's example implementation.
+   */
+  protected function interpolate($message, array $context = array()) {
+      // build a replacement array with braces around the context
+      // keys
+      $replace = array();
+      foreach ($context as $key => $val) {
+          $replace['{' . $key . '}'] = $val;
+      }
 
-        // interpolate replacement values into the message and return
-        return strtr($message, $replace);
-    }
+      // interpolate replacement values into the message and return
+      return strtr($message, $replace);
+  }
 
 	private function __construct() {
-
-		// Use an anonymous object 
-		$configuration = array();
-		\Logger::configure(
-			$configuration, 
-			new class implements \LoggerConfigurator {
-				public function configure(
-					\LoggerHierarchy $hierarchy, $input = null
-				) {
-
-					// A simple layout
-					$layout = new \LoggerLayoutPattern();
-					$layout->setConversionPattern(
-						"%date [%level]\t%msg%newline"
-					);
-					$layout->activateOptions();
-							
-					// Create an appender which logs to file
-					$appFile = 
-						new \LoggerAppenderRollingFile('file-appender');
-					$appFile->setFile(Logger::getLogFilePath());
-					$appFile->setAppend(true);
-					$appFile->setThreshold('all');
-					$appFile->setLayout($layout);
-					$appFile->setMaxBackupIndex(5);
-					$appFile->setMaxFileSize("1MB");
-					$appFile->activateOptions();
-							
-					// Add both appenders to the root logger
-					$this->root = $hierarchy->getRootLogger();
-					$this->root->addAppender($appFile);
-				}
-			}
-		);
-
-		$this->log = \Logger::getLogger('bibcite');
+		$this->log = new \Monolog\Logger('bibcite');
+    $this->log->pushHandler(
+      new \Monolog\Handler\StreamHandler(Logger::getLogFilePath(), \Monolog\Logger::DEBUG)
+    );
 	}
 }

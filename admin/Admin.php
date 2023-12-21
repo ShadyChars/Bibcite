@@ -385,9 +385,9 @@ class Admin
     {
         echo <<<LIBRARY_SECTION
 Each Bibcite shortcode retrieves references from a specified online 
-<a href='http://www.bibtex.org/Format/'>Bibtex</a> file. If a given shortcode 
+<a href='https://github.com/citation-style-language/schema#csl-json-schema'>CSL-JSON</a> file. If a given shortcode 
 does not contain a <tt>file=...</tt> attribute defining the URI, it will use a 
-default Bibtex file instead.
+default CSL-JSON file instead.
 LIBRARY_SECTION;
     }
 
@@ -439,7 +439,7 @@ BIBTEX_SECTION;
         $setting = esc_attr(get_option($id));
         echo "<input type='text' name='$id' id='$id' value='$setting'/>";
         echo <<<LIBRARY_URL_DESCRIPTION
-<p class='description'>URL at which the default Bibtex library file can be 
+<p class='description'>URL at which the default CSL-JSON library file can be 
 found. To override this setting, specify a <tt>file=...</tt> attribute on your
 shortcodes.</p>
 LIBRARY_URL_DESCRIPTION;

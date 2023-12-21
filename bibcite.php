@@ -14,7 +14,7 @@
  * @wordpress-plugin
  * Plugin Name:       Bibcite
  * Plugin URI:        https://github.com/ShadyChars/Bibcite
- * Description:       A simple Bibtex parser and citation generator.
+ * Description:       A simple CSL JSON parser and citation generator.
  * Version:           1.1.3
  * Author:            Keith Houston
  * Author URI:        https://github.com/OrkneyDullard/

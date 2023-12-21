@@ -174,10 +174,8 @@ class CslLibrary
             $csl_json_string = $row->{self::CSL_VALUE};
 
             // Add to our local cache so we can avoid hitting the DB next time.
-            $csl_json_object = json_decode($csl_json_string);
-            self::add_or_update_cached_value(
-                $this->scope, $key, $csl_json_object
-            );
+            $csl_json_object = json_decode($csl_json_string, false);
+            self::add_or_update_cached_value($this->scope, $key, $csl_json_object);
 
             // And return.
             return $csl_json_object;

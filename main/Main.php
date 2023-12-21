@@ -4,10 +4,6 @@ namespace Bibcite\Main;
 
 require plugin_dir_path(dirname(__FILE__)) . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
-use Geissler\Converter\Converter;
-use Geissler\Converter\Standard\BibTeX\BibTeX;
-use Geissler\Converter\Standard\CSL\CSL;
-
 /**
  * The public-facing functionality of the plugin.
  *
@@ -112,9 +108,7 @@ class Main {
 					$csl_entries[] = $csl_json_object;
 				}
 				else
-					$logger->warning(
-						"Could not find CSL library entry: " . $csl_key
-					);
+					$logger->warning("Could not find CSL library entry: " . $csl_key);
 			}
 		} catch (\Exception $e) {
 			$logger->error(
@@ -506,7 +500,7 @@ class Main {
 	 * Get or update a \Bibcite\Common\CslLibrary instance representing the 
 	 * contents of the specified URL.
 	 *
-	 * @param string $url URL of a Bibtex library to be fetched.
+	 * @param string $url URL of a CSL JSON library to be fetched.
 	 * @return \Bibcite\Common\CslLibrary a \Bibcite\Common\CslLibrary 
 	 * containing CSL JSON entries
 	 */
@@ -536,51 +530,37 @@ class Main {
 			__METHOD__ . "_" . md5($url) . "_"
 		);
 		
-		// Download (or get a cached version of the Bibtex library).
-		$bibtex_library_body = \Bibcite\Common\Downloader::get_url($url);
+		// Download (or get a cached version of the CSL-JSON library).
+		$csl_library_body = \Bibcite\Common\Downloader::get_url($url);
 
 		// Has the library changed since we last parsed it? If so, we need to 
 		// parse it. If not, skip the parsing stage.
-		$bibtex_library_hash = md5($bibtex_library_body);
-		$bibtex_library_hash_transient_name = 
-			$transient_prefix_for_url . "bibtex-library-hash";
-		$bibtex_library_hash_previous = 
+		$csl_library_hash = md5($csl_library_body);
+		$csl_library_hash_transient_name = 
+			$transient_prefix_for_url . "csl-library-hash";
+		$csl_library_hash_previous = 
 			\Bibcite\Common\Transients::instance()->get_transient(
-				$bibtex_library_hash_transient_name
+				$csl_library_hash_transient_name
 			);
 		
-		if ($bibtex_library_hash != $bibtex_library_hash_previous)
+		if ($csl_library_hash != $csl_library_hash_previous)
 		{
 			$logger->debug(
-				"The Bibtex library has changed (old #: " .
-				"$bibtex_library_hash_previous; new #: " .
-				"$bibtex_library_hash). Parsing..."
+				"The CSL JSON library has changed (old #: " .
+				"$csl_library_hash_previous; new #: " .
+				"$csl_library_hash). Parsing..."
 			);
 
-			// Parse the library to an array of Bibtex entries.
-			$bibtex_entries = 
-				\Bibcite\Common\BibtexParser::parse_string_to_bibtex(
-					$bibtex_library_body
-				);
+			// Parse the library to JSON
+			$csl_entries = json_decode($csl_library_body);
 
-				// Convert to CSL and record in our CslLibrary.
-			$converter = new Converter();		
-			foreach ($bibtex_entries as $bibtex_entry) {
+			// Record in our CslLibrary.
+			foreach ($csl_entries as $csl_entry) {
 				try {
-
-					// Convert Bibtex to CSL String, then to a CSL JSON object.
-					$csl_json_string = $converter->convert(
-						new BibTeX($bibtex_entry["_original"]), new CSL()
-					);
-					$csl_json_object = json_decode($csl_json_string)[0];
-					
-					// Save the CSL JSON object in our library.
-					$csl_library->add_or_update(
-						$bibtex_entry["citation-key"], $csl_json_object
-					);
+					$csl_library->add_or_update($csl_entry->id, $csl_entry);
 				} catch (\Exception $e) {
 					$logger->warning(
-						"Failed to convert and save Bibtex entry: " . 
+						"Failed to save CSL JSON entry: " . 
 						$e->getMessage()
 					);
 				}
@@ -588,8 +568,8 @@ class Main {
 
 			// Record the hash of the newly-parsed URL.
 			\Bibcite\Common\Transients::instance()->set_transient(
-				$bibtex_library_hash_transient_name, 
-				$bibtex_library_hash,
+				$csl_library_hash_transient_name, 
+				$csl_library_hash,
 				self::TRANSIENT_EXPIRATION_SECONDS
 			);
 		}

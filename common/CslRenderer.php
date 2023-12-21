@@ -60,7 +60,7 @@ class CslRenderer
 				untrailingslashit(plugin_dir_path(dirname(__FILE__))), 
 				'vendor', 
 				'citation-style-language',
-				'styles-distribution'
+				'styles'
 			)
 		);
 
@@ -133,8 +133,8 @@ class CslRenderer
 	 * JSON object) using a named CSL entry style and a Twig list.
 	 *
 	 * @param array $csl_entries ordered list of CSL entries (each one an a CSL 
-	 * JSON object) to be rendered. The numeric index of each entry is used as 
-	 * the index of the rendered item when passed to the template engine.
+	 * JSON object in PHP) to be rendered. The numeric index of each entry is 
+	 * used as the index of the rendered item when passed to the template engine.
 	 * @param string $csl_style_name named CSL style with which to render each 
 	 * entry
 	 * @param string $twig_template_name named Twig template file with which to 
@@ -164,22 +164,14 @@ class CslRenderer
 				$style = file_get_contents($user_style_file);
 			} else if (in_array($csl_style_name, $this->csl_style_names)) {
 				$logger->debug("Using built-in style: $csl_style_name");
-				$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet(
-					$csl_style_name
-				);
+				$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet($csl_style_name);
 			} else {
 				$csl_default_style = $this->csl_style_names[0];
-				$logger->warning(
-					"Unrecognised style: $csl_style_name. Defaulting to $csl_default_style."
-				);
-				$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet(
-					$csl_default_style
-				);
+				$logger->warning("Unrecognised style: $csl_style_name. Defaulting to $csl_default_style.");
+				$style = \Seboettg\CiteProc\StyleSheet::loadStyleSheet($csl_default_style);
 			}
 		} catch (\Exception $e) {
-			$logger->error(
-				"Exception when determining CSL style: " . $e->getMessage()
-			);
+			$logger->error("Exception when determining CSL style: " . $e->getMessage());
 			return "";
 		}
 
@@ -187,9 +179,7 @@ class CslRenderer
 		try	{
 			$citeProc = new \Seboettg\CiteProc\CiteProc($style);
 		} catch (\Exception $e) {
-			$logger->error(
-				"Exception when loading CSL style: " . $e->getMessage()
-			);
+			$logger->error("Exception when loading CSL style: " . $e->getMessage());
 			return "";
 		}
 		
@@ -203,29 +193,21 @@ class CslRenderer
 				// Render the citation. CiteProc expects an array of CSL JSON 
 				// objects, but we're rendering each one individually.
 				try {
-					// chicago-fullnote-bibliography-with-url.csl doesn't use hyperlinks but rather inline URLs.
-					// Options:
-					//
-					// * Using std Chicago style but use Citeproc
-					// lambdas to inject title links and skip URLs. (See https://github.com/seboettg/citeproc-php.)
-					// * Clone std Chicago style but add links to titles and remove from
-					// end of entries.
 					if (!empty($csl_entry)) {
-						$key = $csl_entry->{'citation-label'};
+						$key = $csl_entry->id;
 						$rendered_entry = $citeProc->render(array($csl_entry), "bibliography");
-						$logger->debug(json_encode($csl_entry));
 					}				
 				} catch (\Error $error) {
 					$logger->error(
-						"Error when rendering CSL: " . 
-						$error->getMessage()
+						"Error when rendering CSL ($key): " . $error->getMessage() .
+						" Entry: " . json_encode($csl_entry)
 					);
 					$rendered_entry = 
 						"<span style='color:OrangeRed'>Error when rendering entry ($key)</span>";
 				} catch (\Exception $exception) {
 					$logger->error(
-						"Exception when rendering CSL: " . 
-						$exception->getMessage()
+						"Exception when rendering CSL ($key): " .  $exception->getMessage() . 
+						" Entry: " . json_encode($csl_entry)
 					);
 					$rendered_entry = 
 						"<span style='color:Orange'>Exception when rendering entry ($key)</span>";
@@ -239,15 +221,9 @@ class CslRenderer
 					"entry" => $rendered_entry			// rendered citation
 				);
 			} catch (\Error $error) {
-				$logger->error(
-					"Error when constructing entry for template: " . 
-					$error->getMessage()
-				);
+				$logger->error("Error when constructing entry for template: " . $error->getMessage());
 			} catch (\Exception $exception) {
-				$logger->error(
-					"Exception when constructing entry for template: " . 
-					$exception->getMessage()
-				);
+				$logger->error("Exception when constructing entry for template: " . $exception->getMessage());
 			}
 		}
 
@@ -270,7 +246,7 @@ class CslRenderer
 				$twig_template_name = "built-in-unordered-list";
 				$loader = new \Twig_Loader_Array(
 					array(
-						"${twig_template_name}.twig" => <<<TWIG_DEFAULT_TEMPLATE
+						"{$twig_template_name}.twig" => <<<TWIG_DEFAULT_TEMPLATE
 <ul class="bibcite-default-template">
 {% for entry in entries %}
 	<li>{{ entry.entry | raw }}</li>
@@ -301,7 +277,7 @@ TWIG_DEFAULT_TEMPLATE
 				$loader, array('cache' => $twig_cache_dir)
 			);
 			return $twig->render(
-				"${twig_template_name}.twig", 
+				"{$twig_template_name}.twig", 
 				array('entries' => $rendered_entries)
 			);
 		} catch (\Exception $e) {

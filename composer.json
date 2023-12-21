@@ -1,6 +1,6 @@
 {
     "name": "shadychars/bibcite",
-    "description": "A simple Bibtex parser and CSL citation generator.",
+    "description": "A simple CSL JSON parser and CSL citation generator.",
     "autoload": {
         "psr-4": {
             "Bibcite\\Main\\": "main",
@@ -9,46 +9,15 @@
         }
     },
     "repositories": [
-        {
-            "type": "package",
-            "package": {
-                "name": "citation-style-language/locales",
-                "version":"1.0.0",
-                "source": {
-                    "type": "git",
-                    "url": "https://github.com/citation-style-language/locales.git",
-                    "reference": "master"
-                }
-            }
-        },
-        {
-            "type": "package",
-            "package": {
-                "name": "citation-style-language/styles-distribution",
-                "version":"1.0.0",
-                "source": {
-                    "type": "git",
-                    "url": "https://github.com/citation-style-language/styles-distribution.git",
-                    "reference": "master"
-                }
-            }
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/ShadyChars/converter"
-        }
+        
     ],
     "require": {
-        "php":">=7.2.34",
-        "citation-style-language/locales": "@dev",
-        "citation-style-language/styles-distribution": "@dev",
-        "seboettg/citeproc-php": "^2",
-        "renanbr/bibtex-parser": "^2",
-        "geissler/converter": "dev-master",
-        "apache/log4php": "2.3.0",
+        "php":">=8.0",
+        "seboettg/citeproc-php": "^2.6.2",
 		"cocur/slugify": "^3.1",
 		"twig/twig": "^2.4",
-        "psr/log": "^1.0"
+        "psr/log": "^1.0",
+        "monolog/monolog": "^2.9"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"
