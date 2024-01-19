@@ -2,16 +2,16 @@
 * Contributors: https://github.com/ShadyChars/
 * Tags: references, CSL, CSL JSON, RIS, citations
 * Requires at least: 3.1.0
-* Tested up to: 4.9.5
-* Stable tag: 1.1.3
+* Tested up to: 6.4.2
+* Stable tag: 2.0.0
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Bibcite adds and formats scholarly references in WordPress content. It supports CSL JSON input files and formats their contents using <abbr>CSL</abbr>.
+Bibcite-CSL adds and formats scholarly references in WordPress content. It supports CSL-JSON input files and formats their contents using CSL.
 
 ## Description
 
-Bibcite consumes online CSL JSON files to give you access to scholarly references within your posts and pages. It allows you insert standalone bibliographies via the `[bibtex]` shortcode, and to insert notes and a corresponding bibliography with the `[bibshow]...[/bibshow]` and `[bibcite]` shortcodes.
+Bibcite consumes online CSL-JSON files to give you access to scholarly references within your posts and pages. It allows you insert standalone bibliographies via the `[bibtex]` shortcode, and to insert notes and a corresponding bibliography with the `[bibshow]...[/bibshow]` and `[bibcite]` shortcodes.
 
 Source reference data is parsed from [CSL-JSON](https://github.com/citation-style-language/schema#csl-json-schema) files available at URLs specified via shortcode (e.g. `[bibtex file=http://example.com/my-library.json]`). Where a shortcode does not specify a library, a default library location can be set.
 
@@ -27,7 +27,7 @@ Thanks also to the authors and maintainers of the following projects:
 * [Citation Style Language](https://citationstyles.org/)
 * [cocur/slugify](https://github.com/cocur/slugify)
 * [PSR Log](https://github.com/php-fig/log)
-* [seboettg/citeproc-php](https://github.com/seboettg/citeproc-php)
+* [seboettg/citeproc-php](https://github.com/seboettg/citeproc-php) **CHANGE**
 * [Twig](https://twig.symfony.com)
 
 ## Installation

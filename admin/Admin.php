@@ -176,8 +176,8 @@ class Admin
     public function menu()
     {
         add_options_page(
-            'Bibcite settings', // Browser page title
-            'Bibcite', // Menu title
+            'Bibcite-CSL settings', // Browser page title
+            'Bibcite-CSL', // Menu title
             'manage_options', // required capability
             self::MENU_SLUG, // menu slug
             array($this, 'do_options_page') // method to handle the menu
@@ -313,7 +313,7 @@ class Admin
     {
         ?>
     <div class="wrap">
-        <h2>Bibcite settings</h2>
+        <h2>Bibcite-CSL settings</h2>
         <form action="options.php" method="POST">
 
             <?php

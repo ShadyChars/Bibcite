@@ -12,12 +12,12 @@
  * @package           Bibcite
  *
  * @wordpress-plugin
- * Plugin Name:       Bibcite
+ * Plugin Name:       Bibcite-CSL
  * Plugin URI:        https://github.com/ShadyChars/Bibcite
- * Description:       A simple CSL JSON parser and citation generator.
- * Version:           1.1.3
+ * Description:       A simple CSL JSON parser and citation generator for WordPress.
+ * Version:           2.0.0
  * Author:            Keith Houston
- * Author URI:        https://github.com/OrkneyDullard/
+ * Author URI:        https://github.com/ShadyChars/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       bibcite
@@ -33,7 +33,7 @@ require plugin_dir_path(__FILE__) . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.p
 /**
  * Current plugin version.
  */
-define('BIBCITE_VERSION', '1.1.3');
+define('BIBCITE_VERSION', '2.0.0');
 
 /**
  * A general prefix used to scope databases, tables, constants, and so on.
