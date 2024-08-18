@@ -8,3 +8,7 @@
 * Review settings - can this be simplified?
   * Esp templating - is this really necessary? Can we use CiteProc for footnoted styles?
 * Improve tests - compare to HTML rendered Zotero items, for example
+* Add locators (page etc.) to references
+* Improve readme
+* Figure out how to remove .vscode, other development artefacts
+* Connect directly to Zotero bibliographies

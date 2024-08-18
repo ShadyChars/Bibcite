@@ -11,7 +11,7 @@ Bibcite-CSL adds and formats scholarly references in WordPress content. It suppo
 
 ## Description
 
-Bibcite consumes online CSL-JSON files to give you access to scholarly references within your posts and pages. It allows you insert standalone bibliographies via the `[bibtex]` shortcode, and to insert notes and a corresponding bibliography with the `[bibshow]...[/bibshow]` and `[bibcite]` shortcodes.
+Bibcite-CSL consumes online CSL-JSON files to give you access to scholarly references within your posts and pages. It allows you insert standalone bibliographies via the `[bibtex]` shortcode, and to insert notes and a corresponding bibliography with the `[bibshow]...[/bibshow]` and `[bibcite]` shortcodes.
 
 Source reference data is parsed from [CSL-JSON](https://github.com/citation-style-language/schema#csl-json-schema) files available at URLs specified via shortcode (e.g. `[bibtex file=http://example.com/my-library.json]`). Where a shortcode does not specify a library, a default library location can be set.
 
@@ -36,7 +36,7 @@ This section describes how to install the plugin and get it working.
 
 ### Build
 
-Bibcite is not yet available in a ready-to-install form. To obtain and build a copy:
+Bibcite-CSL is not yet available in a ready-to-install form. To obtain and build a copy:
 
 1. Ensure you have installed PHP 7.0 or above
 1. Clone or download this repository
@@ -48,11 +48,11 @@ Having obtained and built the plugin:
 
 1. Upload the contents of the local `bibcite` folder to a new `/wp-content/plugins/bibcite` directory
 1. Activate the plugin through the WordPress 'Plugins' menu
-1. Configure default values via 'Settings' &rarr; 'Bibcite'
+1. Configure default values via 'Settings' &rarr; 'Bibcite-CSL'
 
 ## Usage
 
-Bibcite allows you to insert standalone bibliographies and/or notes and citation into WordPress posts and pages. Citations are loaded from a specified CSL JSON file before being formatted using either a built-in or custom <abbr>CSL</abbr> style file and then assembled into a note or bibliography using a built-in or custom Twig template.
+Bibcite-CSL allows you to insert standalone bibliographies and/or notes and citation into WordPress posts and pages. Citations are loaded from a specified CSL JSON file before being formatted using either a built-in or custom <abbr>CSL</abbr> style file and then assembled into a note or bibliography using a built-in or custom Twig template.
 
 Note that where practicable, shortcode and attribute usage mirror those of Benjamin Piwowarski's [Papercite plugin](http://www.bpiwowar.net/wp-content/plugins/papercite/documentation/).
 
@@ -157,7 +157,7 @@ A simple Twig template to render `$entries` as a bibliography might look like th
 
 ### Custom styles and templates
 
-Bibcite has a large number of built-in <abbr>CSL</abbr> styles, all taken from the [official repository of <abbr>CSL</abbr> styles](https://github.com/citation-style-language/styles/). These are available via autocomplete from the 'Settings' page. Additionally, Bibcite comes with a limited set of Twig templates:
+Bibcite-CSL has a large number of built-in <abbr>CSL</abbr> styles, all taken from the [official repository of <abbr>CSL</abbr> styles](https://github.com/citation-style-language/styles/). These are available via autocomplete from the 'Settings' page. Additionally, Bibcite-CSL comes with a limited set of Twig templates:
 
 * `bibtex-unordered-list` is intended to render `[bibtex]` bibliographies as simple unordered lists
 * `bibcite-numbered-note` and `bibshow-definition-list` are intended to be used together to present `[bibtex]` and `[bibshow]` shortcodes as numbered notes pointing to a numbered bibliography
@@ -181,3 +181,7 @@ First version.
 ### 1.1.3
 * Improvements to Wordpress path handling.
 * Added UTs for basic cases.
+
+#### 2.0.0
+* Dropped Bibtex support for libraries in favour of CSL-JSON
+* Updated all dependencies
